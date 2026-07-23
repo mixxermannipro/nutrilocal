@@ -1,4 +1,5 @@
 import '../domain/models/models.dart';
+import '../domain/services/weight_analysis_service.dart';
 
 class CoachChatMessage {
   final String sender; // 'user' or 'coach'
@@ -13,6 +14,7 @@ class CoachChatMessage {
 }
 
 class CoachService {
+  /// Enhanced AI Coach reply engine using Fud AI Thermodynamic & Body Context logic
   static String generateCoachReply({
     required String userQuery,
     required UserProfile profile,
@@ -20,63 +22,67 @@ class CoachService {
     required List<WeightEntry> weights,
   }) {
     final queryLower = userQuery.toLowerCase();
+    final forecast = WeightAnalysisService.calculateForecast(
+      profile: profile,
+      weightHistory: weights,
+      recentMeals: recentMeals,
+    );
 
-    // Thermodynamischer Gewichtsprognose-Check
+    // Thermodynamische Gewichtsprognose Query
     if (queryLower.contains('prognose') || queryLower.contains('gewicht') || queryLower.contains('30 tage')) {
-      final currentW = weights.isNotEmpty ? weights.last.weightKg : profile.weightKg;
-      final dailyDeficitKcal = profile.tdee - profile.targetKcal;
-      final weightChange30Days = (dailyDeficitKcal * 30) / 7700; // 7700 kcal per kg body fat
-      final projected30 = currentW - weightChange30Days;
-      final projected60 = currentW - (weightChange30Days * 2);
+      final underLogWarn = forecast.isUnderLoggingDetected
+          ? '\n⚠️ *Hinweis*: Deine beobachtete Gewichtsänderung deutet darauf hin, dass möglicherweise Mahlzeiten (z. B. Öle oder Saucen) nicht erfasst wurden.'
+          : '';
 
       return '''
-Hier ist deine thermodynamische Gewichtsprognose basierend auf deinen Daten:
+Hier ist deine thermodynamische Gewichtsprognose (Fud AI Engine):
 
-📊 **Aktuelles Gewicht**: ${currentW.toStringAsFixed(1)} kg
+📊 **Aktuelles Gewicht**: ${forecast.currentWeightKg.toStringAsFixed(1)} kg
 🔥 **TDEE (Gesamtumsatz)**: ${profile.tdee.round()} kcal/Tag
 🎯 **Zielkalorien**: ${profile.targetKcal.round()} kcal/Tag
-📉 **Tägliches Defizit/Überschuss**: ${dailyDeficitKcal.abs().round()} kcal
+📉 **Tägliches Defizit**: ${forecast.dailyDeficitKcal.abs().round()} kcal/Tag
 
 🔮 **Erwartetes Gewicht**:
-• In 30 Tagen: **${projected30.toStringAsFixed(1)} kg** (${weightChange30Days > 0 ? '-' : '+'}${weightChange30Days.abs().toStringAsFixed(1)} kg)
-• In 60 Tagen: **${projected60.toStringAsFixed(1)} kg**
+• In 30 Tagen: **${forecast.projected30DaysKg.toStringAsFixed(1)} kg** (${forecast.weeklyWeightChangeKg > 0 ? '-' : '+'}${(forecast.weeklyWeightChangeKg.abs() * 4.3).toStringAsFixed(1)} kg)
+• In 60 Tagen: **${forecast.projected60DaysKg.toStringAsFixed(1)} kg**
+• In 90 Tagen: **${forecast.projected90DaysKg.toStringAsFixed(1)} kg**$underLogWarn
 
-💡 *Tipp*: Achte darauf, dein Proteinziel von **${profile.targetProteinG.round()} g/Tag** einzuhalten, um Muskelmasse zu schützen.
+💡 *Tipp*: Dein Proteinziel liegt bei **${profile.targetProteinG.round()} g/Tag**, um Muskelmasse während der Diät zu schützen.
 ''';
     }
 
     if (queryLower.contains('protein') || queryLower.contains('eiweiß')) {
       return '''
-Dein Ziel für Protein liegt bei **${profile.targetProteinG.round()} g/Tag** (ca. 1,8 g/kg Körpergewicht).
+Dein tägliches Proteinziel beträgt **${profile.targetProteinG.round()} g/Tag** (1,8 g/kg Körpergewicht).
 
-Gute Proteinquellen in deiner täglichen Ernährung:
-• Hähnchen- / Putenbrust
-• Magerquark & Hüttenkäse
+Beste Proteinquellen für deinen Tag:
+• Hähnchenbrust / Putenbrust (ca. 30g P / 100g)
+• Magerquark (ca. 60g P pro 500g Packung)
 • Eier & Eiklar
-• Tofu, Linsen & Kichererbsen
-• Whey / Veganes Protein-Pulver
+• Tofu, Kichererbsen & Linsen
+• Whey oder veg. Proteinpulver
 ''';
     }
 
     if (queryLower.contains('tipp') || queryLower.contains('abnehmen') || queryLower.contains('aufbau')) {
       return '''
-Hier sind 3 effektive Tipps für dein Ziel:
+3 essenzielle Regeln für deinen Erfolg:
 
-1. **Konsequentes Logging**: Erfasse Soßen, Öle und Snacks – dort verstecken sich oft unbemerkt 200–400 kcal.
-2. **Volumen-Food**: Nutze viel Gemüse und Ballaststoffe, um die Magenfüllung bei niedrigem Kaloriendichte zu erhöhen.
-3. **Ausreichend Wasser**: Trinke mindestens 2,5 Liter Wasser täglich für optimale Regeneration und Sättigung.
+1. **Exakte Mengenerfassung**: Nutze Küchenwaagen für Öle, Nüsse und Saucen.
+2. **Volumennahrung**: Bevorzuge Gemüse und proteinreiche Lebensmittel mit niedriger Kaloriendichte.
+3. **Konsequentes Krafttraining**: Erhalte deine Muskelmasse durch progressive Überlastung beim Training.
 ''';
     }
 
     return '''
 Hallo! Ich bin dein lokaler NutriLocal AI Coach. 
 
-Basierend auf deinen Daten liegt dein täglicher Bedarf bei **${profile.tdee.round()} kcal** (Ziel: **${profile.targetKcal.round()} kcal**).
+Basierend auf deinem Profil liegt dein Gesamtumsatz bei **${profile.tdee.round()} kcal** (Ziel: **${profile.targetKcal.round()} kcal**).
 
-Du kannst mich alles fragen zu:
-• Thermodynamischen Gewichtsprognosen (30 / 60 / 90 Tage)
-• Protein- und Makro-Empfehlungen
-• Optimierung deiner täglichen Mahlzeiten
+Frage mich z.B.:
+• "Wie sieht meine 30-Tage Gewichtsprognose aus?"
+• "Erreiche ich mein Proteinziel?"
+• "Tipps für effektiven Fettabbau"
 ''';
   }
 }

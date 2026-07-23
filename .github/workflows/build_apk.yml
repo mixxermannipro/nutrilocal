@@ -40,32 +40,32 @@ jobs:
 
       - name: Rename APK
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk NutriLocal-v1.0.6.apk
+          cp build/app/outputs/flutter-apk/app-release.apk NutriLocal-v1.0.7.apk
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: NutriLocal-APK
-          path: NutriLocal-v1.0.6.apk
+          path: NutriLocal-v1.0.7.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
         with:
-          tag_name: v1.0.6
-          name: "NutriLocal v1.0.6 Release (Clean State, No Water, Health Connect)"
+          tag_name: v1.0.7
+          name: "NutriLocal v1.0.7 Release (Fud AI Core Integration & Clean Build)"
           body: |
-            ## NutriLocal v1.0.6 Release 🎉
+            ## NutriLocal v1.0.7 Release 🎉
             
-            ### Highlights & User Feedback Enhancements:
-            - **Keine Hardcoded-Mahlzeiten / Reiner Neuzustand**: Alle Demo-Daten entfernt. "Alle Daten löschen" setzt die App nun zu 100% sauber zurück.
-            - **Wassertracking entfernt**: Wie gewünscht vollständig aus Dashboard, App & Repository entfernt.
-            - **Mahlzeit erfassen Button gefixt**: Reibungsloser Aufruf des Logging-Sheets mit Multi-Foto, Notizen, Barcode & Manuell.
-            - **Intuitiveres Workout-Tagebuch**: Neues erfassen von Muskelgruppen, Übungen, Sätzen, Reps & RPE mit Wischen-zum-Löschen.
-            - **Health Connect Schalter**: Optionale Synchronisierung in den Einstellungen steuerbar.
-            - **Fud AI Benchmark Architecture**: BYOK Multi-Provider KI, What-If Impaktschätzung, Thermodynamischer AI Coach Chat.
+            ### Fud AI Deep Integration & Improvements:
+            - **Fud AI Codebase Integration**: Kompletter Fud AI Quellcode aus GitHub extrahiert und in den Ordner `fud-ai` integriert.
+            - **Thermodynamische Gewichtsprognose**: `WeightAnalysisService` aus Fud AI integriert (30/60/90 Tage Prognose & EMA Trend).
+            - **100% Saubere Daten**: Keine Testdaten mehr, vollständiger Reset aller Daten.
+            - **Wassertracking entfernt**: Wie gewünscht komplett entfernt.
+            - **Minimalistisches Apple-Design**: Squircle Rosé/Emerald Gradient Icon.
+            - **BYOK Multi-Provider KI**: Gemini, OpenRouter, OpenAI, Groq, Ollama + Fallback Provider Chain.
             
             Download der `.apk` Datei unten! 👇
-          files: NutriLocal-v1.0.6.apk
+          files: NutriLocal-v1.0.7.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
