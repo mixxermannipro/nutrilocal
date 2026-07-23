@@ -26,6 +26,11 @@ jobs:
         with:
           flutter-version: '3.22.x'
           channel: 'stable'
+          cache: true
+
+      - name: Create local.properties
+        run: |
+          echo "flutter.sdk=$FLUTTER_ROOT" > android/local.properties
 
       - name: Get Dependencies
         run: flutter pub get
@@ -35,24 +40,25 @@ jobs:
 
       - name: Rename APK
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk NutriLocal-v1.0.0.apk
+          cp build/app/outputs/flutter-apk/app-release.apk NutriLocal-v1.0.1.apk
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: NutriLocal-APK
-          path: NutriLocal-v1.0.0.apk
+          path: NutriLocal-v1.0.1.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
         with:
-          tag_name: v1.0.0
-          name: "NutriLocal v1.0.0 Release"
+          tag_name: v1.0.1
+          name: "NutriLocal v1.0.1 Release"
           body: |
-            ## NutriLocal v1.0.0 - Erstes Release 🎉
+            ## NutriLocal v1.0.1 Release 🎉
             
-            ### Features:
+            ### Fixes & Enhancements:
+            - **Behobener Gradle Build Fehler**: `flutter.sdk` & AndroidX Konfiguration korrigiert.
             - **100% Lokal & Privat**: Keine Cloud, kein Nutzerkonto, keine Werbung.
             - **BYOK (Bring Your Own Key)**: KI-Analyse mit Google Gemini, OpenRouter, OpenAI, Groq, Ollama + Fallback Provider Chain.
             - **Multi-Fotoanalyse**: Bis zu 10 Fotos gleichzeitig + Notiz erfassen.
@@ -63,6 +69,6 @@ jobs:
             - **Barcode-Scan**: Open Food Facts Integration für verpackte Produkte.
             
             Download der `.apk` Datei unten! 👇
-          files: NutriLocal-v1.0.0.apk
+          files: NutriLocal-v1.0.1.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
