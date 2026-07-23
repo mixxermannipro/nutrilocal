@@ -1,76 +1,122 @@
 # 🍏 NutriLocal – Lokaler, Privater & KI-Gestützter Kalorientracker
 
-[![GitHub release](https://img.shields.io/github/v/release/mixxermannipro/nutrilocal?color=2FA36B&style=for-the-badge)](https://github.com/mixxermannipro/nutrilocal/releases)
-[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-blue?style=for-the-badge&logo=flutter)](https://flutter.dev)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
-[![Privacy](https://img.shields.io/badge/Privacy-100%25%20Local-orange?style=for-the-badge)](SECURITY.md)
+<p align="center">
+  <strong>Lokales, Privates & KI-Gestütztes Ernährungstracking für Android und iOS</strong><br>
+  Fotografieren, Sprechen oder Tippen — Die KI erledigt den Rest.
+</p>
 
-**NutriLocal** ist eine moderne, private und KI-gestützte Kalorien- und Ernährungstracking-App für Android und iOS. Die App kombiniert maximale Privatsphäre (100% lokale Speicherung, kein Nutzerkonto, keine Werbung) mit den besten Funktionen moderner KI-Modelle (**Google Gemini 2.0 / 1.5 Flash**, **OpenAI GPT-4o**, **OpenRouter**, **Groq**, **Ollama**) und einer extrem intuitiven Benutzerführung.
+<p align="center">
+  <img src="https://img.shields.io/badge/Android-8.0+-green?logo=android" alt="Android">
+  <img src="https://img.shields.io/badge/iOS-17.6+-blue?logo=apple" alt="iOS">
+  <img src="https://img.shields.io/badge/Flutter-3.22-02569B?logo=flutter" alt="Flutter">
+  <img src="https://img.shields.io/badge/Privacy-100%25%20Local-brightgreen" alt="Privacy">
+  <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
+  <a href="https://github.com/mixxermannipro/nutrilocal/releases"><img src="https://img.shields.io/github/v/release/mixxermannipro/nutrilocal?color=2FA36B&style=for-the-badge" alt="Release"></a>
+</p>
 
 ---
 
-## ✨ Hauptmerkmale (Features)
+Open-Source, lokaler und datenschutzfreundlicher Kalorientracker für Android und iOS basierend auf der **Fud AI Benchmark-Architektur**. Nutze deinen eigenen KI-Anbieter — 13 unterstützte Provider inklusive **Google Gemini**, **OpenAI**, **Anthropic Claude**, **xAI Grok**, **Groq**, **Hugging Face**, **Fireworks AI**, **DeepInfra**, **Mistral**, **Ollama (lokal)** und **Custom OpenAI-kompatible Endpunkte**. Erfasse bis zu 10 Speisenfotos gleichzeitig, scanne Barcodes via Open Food Facts DACH, sprich deine Mahlzeiten ein oder erstelle Workouts mit automatischer Progressive Overload Erinnerung. Kein Nutzerkonto, kein Cloud-Zwang, keine Werbung — 100% kostenlos und lokal.
 
-### 📸 1. Smarte Multi-Modale Ernährungserfassung
-- **Kamera & Galerie (Multi-Foto 1-10)**: Erfasse bis zu 10 Fotos gleichzeitig für die KI-Nährwertanalyse inklusive optionaler Notizfeld-Instruktionen (*"Halbe Portion gegessen"*, *"Ohne Dressing"*).
-- **Barcode-Scan (Open Food Facts DACH)**: Hintergrund-Abfrage der freien europäischen Lebensmitteldatenbank für exakte Nährwertangaben.
-- **Stimmeingabe & Freitext**: Diktieren per Sprachbefehl 🎙️ oder Freitext-Eingabe (*"2 Eier, 100g Haferflocken, Apfel"*).
-- **Manuelle Eingabe & Favoriten**: 1-Klick-Übernahme von Lieblingsspeisen und Kopieren von Mahlzeiten des Vortags (*"Copy from Yesterday"*).
+---
 
-### 🤖 2. BYOK (Bring Your Own Key) & Modellwahl
-- **Google Gemini**: Wähle dein bevorzugtes Modell (`gemini-2.0-flash`, `gemini-1.5-flash`, `gemini-1.5-pro`).
-- **OpenAI**: Modelle wie `gpt-4o`, `gpt-4o-mini`, `o3-mini`.
-- **OpenRouter & Groq**: Freie und ultraschnelle Modelle (`llama-3.3-70b-instruct`, `mixtral-8x7b`).
-- **Ollama**: Volle Offline-Unterstützung mit lokalen Modellen auf deinem eigenen Gerät.
-- **Fallback-Protokoll**: Automatische Umschaltung auf den Fallback-Provider bei Netzwerkstörungen.
+## 🔄 Funktionsweise & Datenfluss (How It Works)
 
-### 🏋️‍♂️ 3. Minimalistisches Workout-Tagebuch mit Progression
-- **Progressive Overload Speicher**: Beim Ausführen und Eingeben einer Übung (*z.B. "Pull-ups"*) zeigt NutriLocal automatisch dein letztes Trainingsergebnis an:  
+```
+Foto(s) / Text / Stimme
+        │
+        ▼
+  BYOK Provider API (Gemini / OpenAI / Claude / Grok / Groq / etc.)
+        │
+        ├── BYOK Fallback-Provider (falls konfiguriert)
+        └── Native On-Device Fallback
+        │
+        ▼
+  JSON Nährwert-Antwort
+        │
+        ▼
+  Nutzer überprüft & editiert (Review & Lock)
+        │
+        ▼
+  LocalRepository  ──▶  Lokaler Speicher + Health Connect / Apple Health (optional)
+```
+
+---
+
+## 🤖 13 KI-Provider (LLM BYOK Providers)
+
+Nutze einen beliebigen der **13 LLM Provider** für Foto-Analysen, "What-If" Nährwertschätzungen und AI Coach Chats. Kostenlose Gemini Keys gibt es unter [aistudio.google.com/apikey](https://aistudio.google.com/apikey). Anfragen gehen direkt von deinem Gerät an den von dir gewählten Provider.
+
+| Provider | Format | Highlight | API Key erforderlich |
+|----------|--------|-----------|:---:|
+| **Google Gemini** | Gemini API | Gemini 3.5 Flash-Lite (default) / 3.6 Flash / 3.5 Flash | Ja |
+| **OpenAI** | OpenAI | GPT-5.4 Mini (default) / 5.5 / 5.4 Nano | Ja |
+| **Anthropic Claude** | Messages API | Sonnet 5 (default) / Opus 4.8 / Haiku 4.5 | Ja |
+| **xAI Grok** | OpenAI-kompatibel | Grok 4.3 | Ja |
+| **OpenRouter** | OpenAI-kompatibel | Beliebiges Modell, Freitext-IDs | Ja |
+| **Together AI** | OpenAI-kompatibel | Qwen 3.5, Gemma 4, MiniMax M3 | Ja |
+| **Groq** | OpenAI-kompatibel | Qwen 3.6, extrem schnell | Ja |
+| **Hugging Face** | OpenAI-kompatibel | Gemma 4 / 3 und Qwen 3.5 / 2.5 VL | Ja |
+| **Fireworks AI** | OpenAI-kompatibel | Qwen 3.7 Plus, MiniMax M3, Kimi K2.6 | Ja |
+| **DeepInfra** | OpenAI-kompatibel | Gemma 4 / 3 Vision Modelle | Ja |
+| **Mistral** | OpenAI-kompatibel | Mistral Small / Medium, Ministral 14B | Ja |
+| **Ollama** | OpenAI-kompatibel (lokal) | Qwen 3 VL, Gemma 4, Llama 3.2 Vision, LLaVA, Moondream | Nein |
+| **Custom** | OpenAI-kompatibel | Freie Einstellbarkeit von Base URL + Modellname | Optional |
+
+---
+
+## 🎙️ Speech-to-Text Provider (6 STT Optionen)
+
+Wähle, wie deine Spracheingaben transkribiert werden. **Native iOS / Android (On-Device)** ist der Standard — kostenlos, lokal und in Echtzeit.
+
+| Provider | Hinweise |
+|----------|----------|
+| **Native iOS / Android (On-Device)** | Kostenlos, offline bei unterstützter Sprache, Echtzeit-Ergebnisse |
+| **Gemini Audio** | Batch Audio Transkription über Gemini |
+| **OpenAI Whisper** | Whisper-1 via `/v1/audio/transcriptions` |
+| **Groq (Whisper)** | `whisper-large-v3`, extrem schnell mit kostenloser Stufe |
+| **Deepgram** | `Nova-3`, schnell und hochpräzise |
+| **AssemblyAI** | Universal-Modell mit hoher Genauigkeit |
+
+---
+
+## ✨ Features im Überblick
+
+### 🍎 1. Erfassung & Logging
+- **Multi-Foto Kamera**: Erfasse bis zu 10 Fotos gleichzeitig mit Notizfeld (*"Halbe Portion gegessen"*).
+- **Barcode Lookup**: Scannen von Produkten mit Open Food Facts DACH Datenbank im Hintergrund.
+- **Stimmeingabe**: Sprechen von Mahlzeiten über 6 verschiedene STT-Provider.
+- **Texteingabe & Manuell**: Freitext oder manuelle Kalorien- & Makroeingabe.
+- **Review & Lock**: Nährwerte sperren/entsperren und Portionsgrößen dynamisch skalieren.
+- **"What-If?" Impakt-Vorschau**: Zeigt die Auswirkungen auf deine verbleibenden Tages-Restkalorien VOR dem Speichern.
+- **Favoriten & Gestern kopieren**: 1-Klick Übernahme aus Recents/Favoriten oder Kopieren des Vortags.
+
+### 🤖 2. KI Coach & Thermodynamische Prognose
+- **Thermodynamische Gewichtsprognose**: Erwartetes Gewicht in **30 / 60 / 90 Tagen**, berechnet mit der physikalischen Fettschmelz-Konstante ($7.700\text{ kcal} = 1\text{ kg Fett}$).
+- **Under-Logging Erkennung**: System warnt bei unvollständiger Mahlzeitenerfassung.
+- **AI Coach Chat**: Multi-Turn Chat mit lokalem Gedächtnis und deutschen Prompt-Chips (*Abnehmen / Halten / Muskelaufbau*).
+
+### 🏋️‍♂️ 3. Minimalistisches Workout Tagebuch (Progressive Overload)
+- **Progressiver Speicher**: Beim Erfassen einer Übung (*z.B. "Pull-ups"*) wird automatisch das letzte Trainingsergebnis angezeigt:  
   👉 **`Letztes Mal: 10 kg Zusatzgewicht × 6 WDH`**
-- Verfolgung von Wiederholungen, Zusatzgewichten und Kalorienverbrauch ohne unübersichtliche Menüs.
-
-### 📈 4. Thermodynamische Körperwerte & Health Connect Sync
-- **Fud AI Engine Integration**: Berechnet thermodynamische **30 / 60 / 90 Tage Gewichtsprognosen** auf Basis der physikalischen Fettschmelz-Konstante ($7.700\text{ kcal} = 1\text{ kg Körperfett}$).
-- **7-Tage EMA Glättung**: Entfernt tägliche Wassertagsschwankungen für ein reales Bild des Fettabbaus.
-- **Health Connect Integration**: Automatische Synchronisierung von Gewicht und Körperfettanteil.
+- **Health Connect Integration**: Synchronisiert berechnete Kalorienverbrennung und Trainingsdaten.
 
 ---
 
-## 🚀 Installation & Downloads
+## 📦 Installation & Download
 
-Lade die aktuellste Android APK direkt aus den GitHub Releases herunter:
+Die neuste kompilierte APK kann direkt auf GitHub heruntergeladen werden:
 
-👉 **[Aktuellsten Release v1.0.9 herunterladen (APK)](https://github.com/mixxermannipro/nutrilocal/releases/latest)**
-
----
-
-## 🛠 Architektur & Projektstruktur
-
-```
-nutrilocal/
-├── android/                   # Native Android Konfiguration & Manifest
-├── fud-ai/                    # Fud AI Referenz-Codebase (Referenzarchitektur)
-├── lib/                       # Flutter Quellcode
-│   ├── ai/                    # KI-Analyse, Vision-Payload & AI Coach Chat Engine
-│   ├── app/                   # App-Routing & Hauptmenü
-│   ├── core/                  # Design System, Liquid Glass Tokens & AppTheme
-│   ├── data/                  # Repository & Open Food Facts DataSources
-│   ├── domain/                # Datenmodelle (UserProfile, MealEntry, WorkoutSet)
-│   └── features/              # Feature-Module (Dashboard, Logging, Review, Workout, Progress, Settings)
-├── pubspec.yaml               # Flutter Abhängigkeiten
-└── README.md                  # Dokumentation
-```
+👉 **[Neuesten Release NutriLocal v1.0.10 herunterladen (APK)](https://github.com/mixxermannipro/nutrilocal/releases/latest)**
 
 ---
 
-## 🔒 Privatsphäre & Sicherheit
+## 🔒 Privatsphäre
 
-1. **Keine Server, keine Cloud**: Deine Daten verbleiben auf deinem Smartphone.
-2. **Kein Tracking, keine Werbung**: Es werden keinerlei Telemetrie- oder Analysedaten erhoben.
-3. **Open Source**: Der gesamte Quellcode ist einsehbar und überprüfbar.
+Keine Accounts, kein Cloud-Zwang, keine Werbung. API Keys werden lokal verschlüsselt gespeichert und Anfragen gehen direkt von deinem Smartphone an den gewählten Provider. **Alle Daten löschen** setzt die gesamte lokale Installation unwiderruflich zurück.
 
 ---
 
 ## 📄 Lizenz
 
-Dieses Projekt steht unter der [MIT Lizenz](LICENSE).
+MIT License. Siehe [LICENSE](LICENSE).

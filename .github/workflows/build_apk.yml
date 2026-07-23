@@ -40,31 +40,30 @@ jobs:
 
       - name: Rename APK
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk NutriLocal-v1.0.9.apk
+          cp build/app/outputs/flutter-apk/app-release.apk NutriLocal-v1.0.10.apk
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: NutriLocal-APK
-          path: NutriLocal-v1.0.9.apk
+          path: NutriLocal-v1.0.10.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
         with:
-          tag_name: v1.0.9
-          name: "NutriLocal v1.0.9 Final Release (Latest LLM Models, Clean Architecture & Documentation)"
+          tag_name: v1.0.10
+          name: "NutriLocal v1.0.10 (1:1 Fud AI 13 BYOK & 6 STT Providers)"
           body: |
-            ## NutriLocal v1.0.9 Final Release 🎉
+            ## NutriLocal v1.0.10 Release 🎉
             
-            ### Highlights dieser Version:
-            - **Dynamische KI-Modellauswahl (Gemini 2.0 Flash, GPT-4o, etc.)**: In den Einstellungen wählbar für primären & Fallback-Provider.
-            - **Sauberes Repository**: Temporäre Dateien bereinigt, professionelles `README.md` hinzugefügt.
-            - **Vollständige Fud AI Integration & Lokalisierung**: 100% Deutsch, Multi-Foto, Barcode, Voice, Copy-from-Yesterday.
-            - **Progressive Overload Workout Tagebuch**: Automatische Anzeige des letzten Ergebnisses beim Übungseintrag.
-            - **Thermodynamischer AI Coach & Health Connect Sync**.
+            ### 1:1 Fud AI BYOK & STT Provider Integration:
+            - **13 BYOK LLM Provider**: Google Gemini (3.5 Flash-Lite / 3.6 / 3.5), OpenAI (GPT-5.4 Mini / 5.5 / 5.4 Nano / 4o), Anthropic Claude (Sonnet 5 / Opus 4.8 / Haiku 4.5), xAI Grok (Grok 4.3), OpenRouter, Together AI, Groq, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama (Local), Custom OpenAI-compatible.
+            - **6 Speech-to-Text Provider**: Native iOS / Android (On-Device), Gemini Audio, OpenAI Whisper, Groq Whisper (whisper-large-v3), Deepgram (Nova-3), AssemblyAI.
+            - **1:1 Datenfluss-Diagramm & Dokumentation**: Vollständig in der deutschen `README.md` integriert.
+            - **Progressive Overload Workout Tracker & Health Connect Sync**.
             
             Download der `.apk` Datei unten! 👇
-          files: NutriLocal-v1.0.9.apk
+          files: NutriLocal-v1.0.10.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

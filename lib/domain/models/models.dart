@@ -198,21 +198,27 @@ class WeightEntry {
 }
 
 class AIProviderConfig {
-  final String primaryProvider; // gemini, openrouter, openai, groq, ollama
+  final String primaryProvider; // gemini, openai, claude, grok, openrouter, together, groq, huggingface, fireworks, deepinfra, mistral, ollama, custom
   final String primaryApiKey;
   final String primaryModel;
   final String fallbackProvider;
   final String fallbackApiKey;
   final String fallbackModel;
+  final String speechProvider; // native, gemini_audio, openai_whisper, groq_whisper, deepgram, assemblyai
+  final String speechApiKey;
+  final String customBaseUrl;
   final String customInstructions;
 
   AIProviderConfig({
     this.primaryProvider = 'gemini',
     this.primaryApiKey = '',
-    this.primaryModel = 'gemini-2.0-flash',
+    this.primaryModel = 'Gemini 3.5 Flash-Lite (default)',
     this.fallbackProvider = 'openrouter',
     this.fallbackApiKey = '',
     this.fallbackModel = 'google/gemini-2.0-flash-exp:free',
+    this.speechProvider = 'native',
+    this.speechApiKey = '',
+    this.customBaseUrl = 'https://api.openai.com/v1',
     this.customInstructions = 'Ich lebe in Deutschland. Bevorzuge deutsche Produktnamen und metrische Einheiten.',
   });
 }
@@ -220,16 +226,28 @@ class AIProviderConfig {
 class AvailableAIModels {
   static const Map<String, List<String>> providerModels = {
     'gemini': [
+      'Gemini 3.5 Flash-Lite (default)',
+      'Gemini 3.6 Flash',
+      'Gemini 3.5 Flash',
       'gemini-2.0-flash',
       'gemini-1.5-flash',
-      'gemini-1.5-pro',
-      'gemini-1.0-pro',
     ],
     'openai': [
+      'GPT-5.4 Mini (default)',
+      'GPT-5.5',
+      'GPT-5.4 Nano',
       'gpt-4o',
       'gpt-4o-mini',
-      'o3-mini',
-      'o1',
+    ],
+    'claude': [
+      'Sonnet 5 (default)',
+      'Opus 4.8',
+      'Haiku 4.5',
+      'claude-3-5-sonnet',
+    ],
+    'grok': [
+      'Grok 4.3',
+      'grok-2-vision',
     ],
     'openrouter': [
       'google/gemini-2.0-flash-exp:free',
@@ -237,15 +255,54 @@ class AvailableAIModels {
       'anthropic/claude-3.5-sonnet',
       'deepseek/deepseek-r1:free',
     ],
+    'together': [
+      'Qwen 3.5',
+      'Gemma 4',
+      'MiniMax M3',
+    ],
     'groq': [
+      'Qwen 3.6',
       'llama-3.3-70b-versatile',
       'mixtral-8x7b-32768',
-      'gemma2-9b-it',
+    ],
+    'huggingface': [
+      'Gemma 4',
+      'Gemma 3',
+      'Qwen 3.5 VL',
+      'Qwen 2.5 VL',
+    ],
+    'fireworks': [
+      'Qwen 3.7 Plus',
+      'MiniMax M3',
+      'Kimi K2.6',
+    ],
+    'deepinfra': [
+      'Gemma 4 Vision',
+      'Gemma 3 Vision',
+    ],
+    'mistral': [
+      'Mistral Small',
+      'Mistral Medium',
+      'Ministral 14B',
     ],
     'ollama': [
-      'llama3.2',
-      'mistral',
-      'qwen2.5',
+      'Qwen 3 VL',
+      'Gemma 4',
+      'Llama 3.2 Vision',
+      'LLaVA',
+      'Moondream',
+    ],
+    'custom': [
+      'Custom Model ID',
     ],
   };
+
+  static const List<String> speechProviders = [
+    'Native iOS / Android (On-Device)',
+    'Gemini Audio',
+    'OpenAI Whisper',
+    'Groq (Whisper)',
+    'Deepgram',
+    'AssemblyAI',
+  ];
 }
