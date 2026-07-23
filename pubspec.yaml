@@ -1,7 +1,7 @@
 name: nutrilocal
 description: "NutriLocal - Lokale, private KI-Kalorien- & Ernährungstracking-App mit BYOK & Workout-Tagebuch."
 publish_to: 'none'
-version: 1.0.11+12
+version: 1.0.12+13
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

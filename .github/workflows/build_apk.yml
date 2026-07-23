@@ -40,30 +40,30 @@ jobs:
 
       - name: Rename APK
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk NutriLocal-v1.0.11.apk
+          cp build/app/outputs/flutter-apk/app-release.apk NutriLocal-v1.0.12.apk
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: NutriLocal-APK
-          path: NutriLocal-v1.0.11.apk
+          path: NutriLocal-v1.0.12.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
         with:
-          tag_name: v1.0.11
-          name: "NutriLocal v1.0.11 (In-App Auto Updater & F-Droid Open Source Ready)"
+          tag_name: v1.0.12
+          name: "NutriLocal v1.0.12 (Refactored Meal Logging, AI Model Cleaning & Coach Chat Fix)"
           body: |
-            ## NutriLocal v1.0.11 Release 🎉
+            ## NutriLocal v1.0.12 Release 🎉
             
-            ### In-App Auto Updater & In-Place Upgrades:
-            - **In-App Auto-Updater**: Die App prüft beim Start automatisch auf GitHub Releases. Wenn eine neuere Version verfügbar ist, erscheint direkt ein Update-Banner in der App mit 1-Klick Installation.
-            - **Kein manueller Download mehr**: Künftige Versionen werden direkt in der App angezeigt und aktualisiert.
-            - **13 BYOK LLM Provider & 6 Speech-to-Text Engines** 1 zu 1 aus Fud AI integriert.
-            - **Progressive Overload Workout Tracker & Health Connect Sync**.
+            ### Fixes & End-to-End Improvements:
+            - **Mahlzeit-Erfassung Gefixt**: `Navigator.pushReplacement` im Logging-Sheet korrigiert. Mahlzeiten lassen sich nun per Foto, Text, Barcode oder Manuell nahtlos erfassen & speichern.
+            - **BYOK Modellerkennung Gefixt**: Gemini, OpenAI & Groq Model-IDs werden vor API-Aufrufen bereinigt (verhindert 404-Fehler).
+            - **AI Coach Chat Überarbeitet**: Echtes Auto-Scrolling zum Ende der Konversation, hübschere Sprechblasen im Apple-Design & verbesserte Prompt-Chips.
+            - **In-App Auto Updater**: Meldet Version v1.0.12 automatisch in der App.
             
             Download der `.apk` Datei unten! 👇
-          files: NutriLocal-v1.0.11.apk
+          files: NutriLocal-v1.0.12.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

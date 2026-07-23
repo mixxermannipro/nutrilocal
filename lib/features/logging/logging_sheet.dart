@@ -193,7 +193,6 @@ class _LoggingSheetState extends ConsumerState<LoggingSheet> {
                         avatar: const Icon(Icons.star, size: 16, color: Colors.amber),
                         label: Text(fav.name),
                         onPressed: () {
-                          Navigator.pop(context);
                           _navigateToReview([fav], 'favorite', fav.name);
                         },
                       ),
@@ -225,7 +224,6 @@ class _LoggingSheetState extends ConsumerState<LoggingSheet> {
     setState(() => _isLoading = false);
 
     if (mounted) {
-      Navigator.pop(context);
       _navigateToReview(items, 'ai_text', text);
     }
   }
@@ -246,7 +244,6 @@ class _LoggingSheetState extends ConsumerState<LoggingSheet> {
     setState(() => _isLoading = false);
 
     if (mounted) {
-      Navigator.pop(context);
       _navigateToReview(items, 'ai_photo', 'Foto Analyse');
     }
   }
@@ -273,7 +270,6 @@ class _LoggingSheetState extends ConsumerState<LoggingSheet> {
                 setState(() => _isLoading = false);
 
                 if (mounted) {
-                  Navigator.pop(context);
                   _navigateToReview(
                     item != null ? [item] : [],
                     'barcode',
@@ -301,12 +297,11 @@ class _LoggingSheetState extends ConsumerState<LoggingSheet> {
       carbohydrateG: 45,
       fatG: 12,
     );
-    Navigator.pop(context);
     _navigateToReview([manualItem], 'manual', 'Manuelle Eingabe');
   }
 
   void _navigateToReview(List<FoodItem> items, String source, String defaultTitle) {
-    Navigator.push(
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (ctx) => ReviewScreen(

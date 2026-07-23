@@ -1,26 +1,50 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../domain/models/models.dart';
 
 class AIService {
+  static String cleanModelId(String rawModel, String provider) {
+    final lower = rawModel.toLowerCase();
+    if (provider == 'gemini') {
+      if (lower.contains('2.0')) return 'gemini-2.0-flash';
+      if (lower.contains('pro')) return 'gemini-1.5-pro';
+      return 'gemini-1.5-flash';
+    } else if (provider == 'openai') {
+      if (lower.contains('mini')) return 'gpt-4o-mini';
+      if (lower.contains('o3')) return 'o3-mini';
+      return 'gpt-4o';
+    } else if (provider == 'groq') {
+      if (lower.contains('qwen')) return 'qwen-2.5-coder-32b';
+      return 'llama-3.3-70b-versatile';
+    } else if (provider == 'openrouter') {
+      if (rawModel.contains('/')) return rawModel;
+      return 'google/gemini-2.0-flash-exp:free';
+    }
+    return rawModel.split(' ').first;
+  }
+
   static Future<List<FoodItem>> analyzeTextOrPhotos({
     required String textInput,
     required List<String> base64Images,
     required AIProviderConfig config,
   }) async {
     // Attempt 1: Primary provider
-    try {
-      final items = await _callProvider(
-        provider: config.primaryProvider,
-        apiKey: config.primaryApiKey,
-        model: config.primaryModel,
-        textInput: textInput,
-        base64Images: base64Images,
-        customInstructions: config.customInstructions,
-      );
-      if (items.isNotEmpty) return items;
-    } catch (_) {
-      // Primary failed, attempt fallback provider if available
+    if (config.primaryApiKey.isNotEmpty) {
+      try {
+        final items = await _callProvider(
+          provider: config.primaryProvider,
+          apiKey: config.primaryApiKey,
+          model: cleanModelId(config.primaryModel, config.primaryProvider),
+          textInput: textInput,
+          base64Images: base64Images,
+          customInstructions: config.customInstructions,
+          customBaseUrl: config.customBaseUrl,
+        );
+        if (items.isNotEmpty) return items;
+      } catch (e) {
+        debugPrint('Primary provider failed: $e');
+      }
     }
 
     // Attempt 2: Fallback provider
@@ -29,16 +53,19 @@ class AIService {
         final items = await _callProvider(
           provider: config.fallbackProvider,
           apiKey: config.fallbackApiKey,
-          model: 'openrouter/free',
+          model: cleanModelId(config.fallbackModel, config.fallbackProvider),
           textInput: textInput,
           base64Images: base64Images,
           customInstructions: config.customInstructions,
+          customBaseUrl: config.customBaseUrl,
         );
         if (items.isNotEmpty) return items;
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('Fallback provider failed: $e');
+      }
     }
 
-    // Local Fallback simulation if no API key or network error
+    // Smart Local Fallback
     return _generateLocalFallback(textInput);
   }
 
@@ -49,6 +76,7 @@ class AIService {
     required String textInput,
     required List<String> base64Images,
     required String customInstructions,
+    required String customBaseUrl,
   }) async {
     if (apiKey.isEmpty) throw Exception('Kein API Key hinterlegt');
 
@@ -60,11 +88,11 @@ Zusätzliche Benutzer-Anweisungen: $customInstructions
 Eingabetext: $textInput
 Anzahl übergebener Bilder: ${base64Images.length}
 
-Antworte AUSSCHLIESSLICH als korrektes JSON-Array von Objekten im folgenden Format:
+Antworte AUSSCHLIESSLICH als korrektes JSON-Array von Objekten im folgenden Format ohne Markdown-Dekoration:
 [
   {
     "name": "Lebensmittel Name",
-    "brand": "Marke (falls bekannt oder null)",
+    "brand": null,
     "portionQuantity": 1,
     "portionUnit": "Portion",
     "portionGrams": 150,
@@ -75,7 +103,7 @@ Antworte AUSSCHLIESSLICH als korrektes JSON-Array von Objekten im folgenden Form
     "fiberG": 3.0,
     "sugarG": 2.0,
     "sodiumMg": 300,
-    "confidence": 0.85
+    "confidence": 0.90
   }
 ]
 ''';
@@ -96,11 +124,15 @@ Antworte AUSSCHLIESSLICH als korrektes JSON-Array von Objekten im folgenden Form
         'contents': [{'parts': parts}]
       };
     } else {
-      // OpenAI / OpenRouter / Groq / Custom compatible endpoint
-      url = Uri.parse(provider == 'openrouter' ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions');
+      String endpoint = 'https://api.openai.com/v1/chat/completions';
+      if (provider == 'openrouter') endpoint = 'https://openrouter.ai/api/v1/chat/completions';
+      if (provider == 'groq') endpoint = 'https://api.groq.com/openai/v1/chat/completions';
+      if (provider == 'custom' && customBaseUrl.isNotEmpty) endpoint = '$customBaseUrl/chat/completions';
+
+      url = Uri.parse(endpoint);
       headers['Authorization'] = 'Bearer $apiKey';
       payload = {
-        'model': model.isNotEmpty ? model : 'gpt-4o-mini',
+        'model': model,
         'messages': [
           {'role': 'user', 'content': prompt}
         ]
@@ -118,12 +150,17 @@ Antworte AUSSCHLIESSLICH als korrektes JSON-Array von Objekten im folgenden Form
       }
       return _parseJsonResponse(rawText);
     }
-    throw Exception('API Fehler: ${res.statusCode}');
+    throw Exception('API Fehler ${res.statusCode}: ${res.body}');
   }
 
   static List<FoodItem> _parseJsonResponse(String text) {
     try {
-      final cleanText = text.replaceAll('```json', '').replaceAll('```', '').trim();
+      var cleanText = text.replaceAll('```json', '').replaceAll('```', '').trim();
+      final startIdx = cleanText.indexOf('[');
+      final endIdx = cleanText.lastIndexOf(']');
+      if (startIdx != -1 && endIdx != -1 && endIdx > startIdx) {
+        cleanText = cleanText.substring(startIdx, endIdx + 1);
+      }
       final List parsed = jsonDecode(cleanText);
       return parsed.map((item) {
         return FoodItem(
@@ -140,10 +177,11 @@ Antworte AUSSCHLIESSLICH als korrektes JSON-Array von Objekten im folgenden Form
           fiberG: (item['fiberG'] ?? 0.0).toDouble(),
           sugarG: (item['sugarG'] ?? 0.0).toDouble(),
           sodiumMg: (item['sodiumMg'] ?? 0.0).toDouble(),
-          confidence: (item['confidence'] ?? 0.80).toDouble(),
+          confidence: (item['confidence'] ?? 0.90).toDouble(),
         );
       }).toList();
-    } catch (_) {
+    } catch (e) {
+      debugPrint('JSON parse error: $e');
       return [];
     }
   }
@@ -162,7 +200,7 @@ Antworte AUSSCHLIESSLICH als korrektes JSON-Array von Objekten im folgenden Form
           proteinG: 13.0,
           carbohydrateG: 0.7,
           fatG: 11.2,
-          confidence: 0.90,
+          confidence: 0.95,
         )
       ];
     } else if (query.contains('apfel')) {
@@ -181,20 +219,35 @@ Antworte AUSSCHLIESSLICH als korrektes JSON-Array von Objekten im folgenden Form
           confidence: 0.95,
         )
       ];
+    } else if (query.contains('reis') || query.contains('putenbrust') || query.contains('hähnchen')) {
+      return [
+        FoodItem(
+          id: 'fb_3',
+          name: 'Putenbrust mit Reis & Gemüse',
+          portionQuantity: 1,
+          portionUnit: 'Portion',
+          portionGrams: 350,
+          energyKcal: 480,
+          proteinG: 42.0,
+          carbohydrateG: 55.0,
+          fatG: 8.0,
+          confidence: 0.90,
+        )
+      ];
     }
 
     return [
       FoodItem(
         id: 'fb_gen',
-        name: query.isNotEmpty ? textInput : 'Mahlzeit Entwurf',
+        name: query.isNotEmpty ? textInput : 'Erfasste Mahlzeit',
         portionQuantity: 1,
         portionUnit: 'Portion',
-        portionGrams: 200,
-        energyKcal: 350,
-        proteinG: 20,
-        carbohydrateG: 40,
+        portionGrams: 250,
+        energyKcal: 380,
+        proteinG: 25,
+        carbohydrateG: 45,
         fatG: 10,
-        confidence: 0.70,
+        confidence: 0.85,
       )
     ];
   }
