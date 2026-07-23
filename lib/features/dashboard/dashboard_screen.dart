@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../data/repositories/local_repository.dart';
+import '../../data/datasources/update_service.dart';
 import '../../core/theme/app_theme.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -14,11 +15,60 @@ class DashboardScreen extends ConsumerStatefulWidget {
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   late String _todayKey;
+  AppUpdateInfo? _updateInfo;
 
   @override
   void initState() {
     super.initState();
     _todayKey = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    _checkAppUpdates();
+  }
+
+  void _checkAppUpdates() async {
+    final info = await UpdateService.checkForUpdate();
+    if (mounted && info != null && info.hasUpdate) {
+      setState(() => _updateInfo = info);
+      _showUpdateDialog(info);
+    }
+  }
+
+  void _showUpdateDialog(AppUpdateInfo info) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.system_update_rounded, color: AppColors.lightAccent),
+            const SizedBox(width: 8),
+            Text('Neues Update ${info.latestVersion}'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Eine neue Version von NutriLocal ist verfügbar! 🎉', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(info.releaseNotes, maxLines: 4, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, color: Colors.grey)),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Später')),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.download_rounded),
+            label: const Text('Jetzt Aktualisieren'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.lightAccent,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              UpdateService.launchUpdateUrl(info.apkDownloadUrl);
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -90,6 +140,38 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (_updateInfo != null && _updateInfo!.hasUpdate)
+              Container(
+                margin: const EdgeInsets.only(bottom: 14),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.lightAccent.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.lightAccent),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.system_update_rounded, color: AppColors.lightAccent),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Update ${_updateInfo!.latestVersion} verfügbar!',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.lightAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      ),
+                      onPressed: () => UpdateService.launchUpdateUrl(_updateInfo!.apkDownloadUrl),
+                      child: const Text('Installieren'),
+                    ),
+                  ],
+                ),
+              ),
+
             // Date Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

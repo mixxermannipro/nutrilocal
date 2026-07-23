@@ -40,30 +40,30 @@ jobs:
 
       - name: Rename APK
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk NutriLocal-v1.0.10.apk
+          cp build/app/outputs/flutter-apk/app-release.apk NutriLocal-v1.0.11.apk
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: NutriLocal-APK
-          path: NutriLocal-v1.0.10.apk
+          path: NutriLocal-v1.0.11.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
         with:
-          tag_name: v1.0.10
-          name: "NutriLocal v1.0.10 (1:1 Fud AI 13 BYOK & 6 STT Providers)"
+          tag_name: v1.0.11
+          name: "NutriLocal v1.0.11 (In-App Auto Updater & F-Droid Open Source Ready)"
           body: |
-            ## NutriLocal v1.0.10 Release 🎉
+            ## NutriLocal v1.0.11 Release 🎉
             
-            ### 1:1 Fud AI BYOK & STT Provider Integration:
-            - **13 BYOK LLM Provider**: Google Gemini (3.5 Flash-Lite / 3.6 / 3.5), OpenAI (GPT-5.4 Mini / 5.5 / 5.4 Nano / 4o), Anthropic Claude (Sonnet 5 / Opus 4.8 / Haiku 4.5), xAI Grok (Grok 4.3), OpenRouter, Together AI, Groq, Hugging Face, Fireworks AI, DeepInfra, Mistral, Ollama (Local), Custom OpenAI-compatible.
-            - **6 Speech-to-Text Provider**: Native iOS / Android (On-Device), Gemini Audio, OpenAI Whisper, Groq Whisper (whisper-large-v3), Deepgram (Nova-3), AssemblyAI.
-            - **1:1 Datenfluss-Diagramm & Dokumentation**: Vollständig in der deutschen `README.md` integriert.
+            ### In-App Auto Updater & In-Place Upgrades:
+            - **In-App Auto-Updater**: Die App prüft beim Start automatisch auf GitHub Releases. Wenn eine neuere Version verfügbar ist, erscheint direkt ein Update-Banner in der App mit 1-Klick Installation.
+            - **Kein manueller Download mehr**: Künftige Versionen werden direkt in der App angezeigt und aktualisiert.
+            - **13 BYOK LLM Provider & 6 Speech-to-Text Engines** 1 zu 1 aus Fud AI integriert.
             - **Progressive Overload Workout Tracker & Health Connect Sync**.
             
             Download der `.apk` Datei unten! 👇
-          files: NutriLocal-v1.0.10.apk
+          files: NutriLocal-v1.0.11.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
