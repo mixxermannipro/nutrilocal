@@ -123,6 +123,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
             const Divider(height: 40),
 
+            const Text('Health Connect & Synchronisation', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+
+            SwitchListTile(
+              title: const Text('Health Connect Integration'),
+              subtitle: const Text('Ernährungsdaten & Workouts optional spiegeln'),
+              value: repo.healthSyncEnabled,
+              onChanged: (v) {
+                repo.setHealthSyncEnabled(v);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(v ? 'Health Connect aktiviert! 💚' : 'Health Connect deaktiviert.')),
+                );
+              },
+            ),
+
+            const Divider(height: 40),
+
             const Text('Daten & Privatsphäre', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
 
@@ -152,21 +169,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
             ListTile(
               leading: const Icon(Icons.delete_forever, color: Colors.red),
-              title: const Text('Alle lokalen Daten löschen', style: TextStyle(color: Colors.red)),
-              subtitle: const Text('Setzt die App auf den Werkszustand zurück.'),
+              title: const Text('Alle lokalen Daten löschen', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+              subtitle: const Text('Löscht alle Mahlzeiten, Workouts und Gewichtseinträge unwiderruflich.'),
               onTap: () {
                 showDialog(
                   context: context,
                   builder: (ctx) => AlertDialog(
                     title: const Text('Wirklich alle Daten löschen?'),
-                    content: const Text('Diese Aktion löscht alle deine lokalen Ernährungseinträge und Einstellungen unwiderruflich.'),
+                    content: const Text('Diese Aktion löscht alle deine lokalen Ernährungseinträge, Workouts und Gewichtsdaten vollständig.'),
                     actions: [
                       TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Abbrechen')),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
                         onPressed: () {
+                          repo.deleteAllData();
                           Navigator.pop(ctx);
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Alle Daten wurden zurückgesetzt.')));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Alle lokalen Daten wurden zurückgesetzt! 🗑️')),
+                          );
                         },
                         child: const Text('Löschen'),
                       ),

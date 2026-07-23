@@ -40,33 +40,32 @@ jobs:
 
       - name: Rename APK
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk NutriLocal-v1.0.5.apk
+          cp build/app/outputs/flutter-apk/app-release.apk NutriLocal-v1.0.6.apk
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: NutriLocal-APK
-          path: NutriLocal-v1.0.5.apk
+          path: NutriLocal-v1.0.6.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
         with:
-          tag_name: v1.0.5
-          name: "NutriLocal v1.0.5 Release (Apple Glass UI & Fixes)"
+          tag_name: v1.0.6
+          name: "NutriLocal v1.0.6 Release (Clean State, No Water, Health Connect)"
           body: |
-            ## NutriLocal v1.0.5 Release 🎉
+            ## NutriLocal v1.0.6 Release 🎉
             
-            ### Fixes & Apple-Style UI Upgrade:
-            - **Crash-Fix**: Native `MainActivity.kt` hinzugefügt & Flutter `main.dart` gegen Abstürze abgesichert.
-            - **Minimalistisches Apple-Icon**: Sleek squircle Gradient Icon (Rosé/Emerald).
-            - **Liquid Glass UI & UX**: Apple-Style Gradients, Calorie Ring Glow, Fud AI Multi-Photo Scan & Notizen.
-            - **100% Lokal & Privat**: Keine Cloud, kein Nutzerkonto, keine Werbung.
-            - **BYOK (Bring Your Own Key)**: KI-Analyse mit Google Gemini, OpenRouter, OpenAI, Groq, Ollama + Fallback Provider Chain.
-            - **Review-Screen mit "What-If" Impakt**: Vorschau auf verbleibende Tages-Restkalorien VOR dem Speichern.
-            - **AI Coach Chat**: Lokaler KI-Berater mit thermodynamischer 30/60/90-Tage Gewichtsprognose.
+            ### Highlights & User Feedback Enhancements:
+            - **Keine Hardcoded-Mahlzeiten / Reiner Neuzustand**: Alle Demo-Daten entfernt. "Alle Daten löschen" setzt die App nun zu 100% sauber zurück.
+            - **Wassertracking entfernt**: Wie gewünscht vollständig aus Dashboard, App & Repository entfernt.
+            - **Mahlzeit erfassen Button gefixt**: Reibungsloser Aufruf des Logging-Sheets mit Multi-Foto, Notizen, Barcode & Manuell.
+            - **Intuitiveres Workout-Tagebuch**: Neues erfassen von Muskelgruppen, Übungen, Sätzen, Reps & RPE mit Wischen-zum-Löschen.
+            - **Health Connect Schalter**: Optionale Synchronisierung in den Einstellungen steuerbar.
+            - **Fud AI Benchmark Architecture**: BYOK Multi-Provider KI, What-If Impaktschätzung, Thermodynamischer AI Coach Chat.
             
             Download der `.apk` Datei unten! 👇
-          files: NutriLocal-v1.0.5.apk
+          files: NutriLocal-v1.0.6.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

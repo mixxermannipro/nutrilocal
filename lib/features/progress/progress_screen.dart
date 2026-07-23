@@ -62,25 +62,55 @@ class _ProgressScreenState extends ConsumerState<ProgressScreen> {
 
             const SizedBox(height: 20),
 
-            const Text('Gewichtsverlauf (Letzte Einträge):', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text('Gewichtsverlauf:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
 
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: weights.length,
-              itemBuilder: (context, index) {
-                final w = weights[weights.length - 1 - index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: ListTile(
-                    leading: const Icon(Icons.monitor_weight_outlined, color: AppColors.lightAccent),
-                    title: Text('${w.weightKg.toStringAsFixed(1)} kg', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('${w.date.day}.${w.date.month}.${w.date.year}'),
+            if (weights.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(Icons.show_chart, size: 48, color: Colors.grey.withOpacity(0.4)),
+                      const SizedBox(height: 12),
+                      const Text('Noch keine Gewichts-Einträge erfasst.\nTippe auf "Gewicht loggen"!', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, height: 1.4)),
+                    ],
                   ),
-                );
-              },
-            ),
+                ),
+              )
+            else
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: weights.length,
+                itemBuilder: (context, index) {
+                  final w = weights[weights.length - 1 - index];
+                  return Dismissible(
+                    key: Key(w.id),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 20),
+                      color: Colors.red,
+                      child: const Icon(Icons.delete, color: Colors.white),
+                    ),
+                    onDismissed: (_) {
+                      repo.deleteWeight(w.id);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Gewichtseintrag gelöscht')),
+                      );
+                    },
+                    child: Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        leading: const Icon(Icons.monitor_weight_outlined, color: AppColors.lightAccent),
+                        title: Text('${w.weightKg.toStringAsFixed(1)} kg', style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text('${w.date.day}.${w.date.month}.${w.date.year}'),
+                      ),
+                    ),
+                  );
+                },
+              ),
           ],
         ),
       ),
@@ -104,7 +134,7 @@ class _ProgressScreenState extends ConsumerState<ProgressScreen> {
               final val = double.tryParse(_weightController.text);
               if (val != null) {
                 repo.addWeight(val);
-                setState(() {});
+                _weightController.clear();
               }
               Navigator.pop(ctx);
             },

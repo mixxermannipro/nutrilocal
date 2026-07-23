@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../data/repositories/local_repository.dart';
 import '../../core/theme/app_theme.dart';
-import '../../domain/models/models.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   final VoidCallback onOpenLogging;
@@ -34,7 +33,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final totalFat = meals.fold<double>(0, (sum, m) => sum + m.totalFat);
 
     final remainingKcal = (profile.targetKcal - totalEatenKcal).round();
-    final waterMl = repo.getWaterTotalForDate(_todayKey);
 
     return Scaffold(
       appBar: AppBar(
@@ -43,7 +41,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: AppColors.calorieRingGradient,
               ),
@@ -53,18 +51,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             const Text('NutriLocal', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.water_drop, color: AppColors.water),
-            onPressed: () {
-              repo.addWater(250, _todayKey);
-              setState(() {});
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('+250 ml Wasser hinzugefügt! 💧'), duration: Duration(seconds: 1)),
-              );
-            },
-          )
-        ],
       ),
       floatingActionButton: Container(
         decoration: BoxDecoration(
@@ -176,43 +162,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ),
             ),
 
-            const SizedBox(height: 18),
-
-            // Fluid Water Tracker Card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.water.withOpacity(0.15),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.water_drop, color: AppColors.water, size: 24),
-                    ),
-                    const SizedBox(width: 14),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Wasser: $waterMl / ${repo.waterGoalMl} ml', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                        const Text('Hydratation heute', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                      ],
-                    ),
-                    const Spacer(),
-                    IconButton.filledTonal(
-                      icon: const Icon(Icons.add, color: AppColors.water),
-                      onPressed: () {
-                        repo.addWater(250, _todayKey);
-                        setState(() {});
-                      },
-                    )
-                  ],
-                ),
-              ),
-            ),
-
             const SizedBox(height: 22),
 
             // Today Meals Header
@@ -233,7 +182,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     children: [
                       Icon(Icons.restaurant_outlined, size: 48, color: Colors.grey.withOpacity(0.4)),
                       const SizedBox(height: 12),
-                      const Text('Noch keine Mahlzeiten erfassen.\nTippe unten auf "Mahlzeit erfassen"!', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, height: 1.4)),
+                      const Text('Noch keine Mahlzeiten erfasst.\nTippe unten auf "Mahlzeit erfassen"!', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, height: 1.4)),
                     ],
                   ),
                 ),

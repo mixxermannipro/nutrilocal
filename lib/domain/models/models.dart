@@ -136,25 +136,12 @@ class FoodItem {
   }
 }
 
-class WaterEntry {
-  final String id;
-  final DateTime timestamp;
-  final String dateKey;
-  final int amountMl;
-
-  WaterEntry({
-    required this.id,
-    required this.timestamp,
-    required this.dateKey,
-    required this.amountMl,
-  });
-}
-
 class WorkoutEntry {
   final String id;
   final DateTime timestamp;
   final String dateKey;
   final String name;
+  final String muscleGroup; // Brust, Rücken, Beine, Schultern, Arme, Core
   final int durationMinutes;
   final double energyBurnedKcal;
   final String? notes;
@@ -165,6 +152,7 @@ class WorkoutEntry {
     required this.timestamp,
     required this.dateKey,
     required this.name,
+    required this.muscleGroup,
     required this.durationMinutes,
     required this.energyBurnedKcal,
     this.notes,
@@ -177,7 +165,7 @@ class WorkoutSet {
   final int setOrder;
   final double weightKg;
   final int reps;
-  final double? rpe;
+  final double? rpe; // Rate of Perceived Exertion (1-10)
 
   WorkoutSet({
     required this.exerciseName,
