@@ -66,7 +66,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           children: [
             // Date Header
             Row(
-              mainAxisAlignment: MainState.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   DateFormat('EEEE, d. MMMM', 'de_DE').format(DateTime.now()),
@@ -85,7 +85,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 child: Column(
                   children: [
                     Row(
-                      mainAxisAlignment: MainState.spaceAround,
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,7 +172,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
             // Today Meals Section
             Row(
-              mainAxisAlignment: MainState.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text('Heutige Mahlzeiten', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 Text('${meals.length} Einträge', style: const TextStyle(color: Colors.grey)),
@@ -216,7 +216,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          mainAxisAlignment: MainState.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
             Text('${current.round()} / ${target.round()} g', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),

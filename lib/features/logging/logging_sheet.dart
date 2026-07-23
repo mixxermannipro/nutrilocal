@@ -38,7 +38,7 @@ class _LoggingSheetState extends ConsumerState<LoggingSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainState.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Mahlzeit erfassen 🍎', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
@@ -48,7 +48,7 @@ class _LoggingSheetState extends ConsumerState<LoggingSheet> {
 
           // Meal Type Selector
           Row(
-            mainAxisAlignment: MainState.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: ['Frühstück', 'Mittagessen', 'Abendessen', 'Snacks'].map((type) {
               final isSel = _selectedMealType == type;
               return ChoiceChip(
@@ -92,7 +92,7 @@ class _LoggingSheetState extends ConsumerState<LoggingSheet> {
                         label: const Text('Foto (Multi)'),
                         onPressed: _analyzePhoto,
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.vertical(14),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         ),
                       ),
@@ -104,7 +104,7 @@ class _LoggingSheetState extends ConsumerState<LoggingSheet> {
                         label: const Text('Barcode'),
                         onPressed: _showBarcodeDialog,
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.vertical(14),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         ),
                       ),
@@ -120,7 +120,7 @@ class _LoggingSheetState extends ConsumerState<LoggingSheet> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.lightAccent,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.vertical(14),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
                     onPressed: _openManualEntry,

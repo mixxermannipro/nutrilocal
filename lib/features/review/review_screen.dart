@@ -100,7 +100,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                     ),
                     const SizedBox(height: 12),
                     Row(
-                      mainAxisAlignment: MainState.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('Diese Mahlzeit: +${_totalKcal.round()} kcal', style: const TextStyle(fontWeight: FontWeight.w600)),
                         Text('Verbleibend danach: ${remainingAfterSave.round()} kcal',
@@ -173,7 +173,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                           ],
                         ),
                         Row(
-                          mainAxisAlignment: MainState.spaceAround,
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             Text('${item.energyKcal.round()} kcal', style: const TextStyle(fontWeight: FontWeight.bold)),
                             Text('P: ${item.proteinG.toStringAsFixed(1)}g', style: const TextStyle(color: AppColors.protein)),
@@ -197,7 +197,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                 child: Column(
                   children: [
                     Row(
-                      mainAxisAlignment: MainState.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Gesamtkalorien:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                         Text('${_totalKcal.round()} kcal', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.lightAccent)),
@@ -205,7 +205,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                     ),
                     const Divider(height: 20),
                     Row(
-                      mainAxisAlignment: MainState.spaceAround,
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         Text('Protein: ${_totalProtein.round()}g', style: const TextStyle(color: AppColors.protein, fontWeight: FontWeight.bold)),
                         Text('Carbs: ${_totalCarbs.round()}g', style: const TextStyle(color: AppColors.carbs, fontWeight: FontWeight.bold)),

@@ -31,7 +31,7 @@ class _DiaryScreenState extends ConsumerState<DiaryScreen> {
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             color: Theme.of(context).cardColor,
             child: Row(
-              mainAxisAlignment: MainState.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
                   icon: const Icon(Icons.chevron_left),

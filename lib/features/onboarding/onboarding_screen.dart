@@ -43,7 +43,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 child: _buildStepContent(),
               ),
               Row(
-                mainAxisAlignment: MainState.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   if (_currentStep > 0)
                     OutlinedButton(
@@ -160,7 +160,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 child: Column(
                   children: [
                     Row(
-                      mainAxisAlignment: MainState.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Täglicher Kalorienbedarf:'),
                         Text('${tempProfile.targetKcal.round()} kcal', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.lightAccent)),
@@ -168,7 +168,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     ),
                     const Divider(height: 24),
                     Row(
-                      mainAxisAlignment: MainState.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Protein Target:'),
                         Text('${tempProfile.targetProteinG.round()} g', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.protein)),
@@ -176,7 +176,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     ),
                     const SizedBox(height: 8),
                     Row(
-                      mainAxisAlignment: MainState.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Kohlenhydrate Target:'),
                         Text('${tempProfile.targetCarbG.round()} g', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.carbs)),
@@ -184,7 +184,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     ),
                     const SizedBox(height: 8),
                     Row(
-                      mainAxisAlignment: MainState.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('Fett Target:'),
                         Text('${tempProfile.targetFatG.round()} g', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.fat)),

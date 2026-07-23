@@ -54,7 +54,7 @@ class _WorkoutScreenState extends State<WorkoutScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainState.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(w['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                       Text('~${w['burnKcal']} kcal', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.lightAccent)),

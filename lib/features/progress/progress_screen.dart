@@ -35,7 +35,7 @@ class _ProgressScreenState extends ConsumerState<ProgressScreen> {
                 child: Column(
                   children: [
                     Row(
-                      mainAxisAlignment: MainState.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
