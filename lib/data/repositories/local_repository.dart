@@ -1,12 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/models.dart';
+import 'package:intl/intl.dart';
 
 class LocalRepository extends ChangeNotifier {
   UserProfile? _userProfile;
   List<MealEntry> _meals = [];
+  List<FoodItem> _favorites = [];
   List<WorkoutEntry> _workoutEntries = [];
   List<WeightEntry> _weightEntries = [];
+  final Map<String, WorkoutSet> _lastExerciseHistory = {};
   AIProviderConfig _aiConfig = AIProviderConfig();
   bool _healthSyncEnabled = false;
 
@@ -19,6 +22,7 @@ class LocalRepository extends ChangeNotifier {
       id: 'default_user',
       heightCm: 178,
       weightKg: 75.0,
+      bodyFatPercentage: 18.0,
       birthYear: 1995,
       sex: 'male',
       activityLevel: 1.55,
@@ -56,12 +60,24 @@ class LocalRepository extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateMeal(MealEntry meal) {
-    final idx = _meals.indexWhere((m) => m.id == meal.id);
-    if (idx != -1) {
-      _meals[idx] = meal;
-      notifyListeners();
+  void copyMealsFromDate(String sourceDateKey, String targetDateKey) {
+    final sourceMeals = getMealsForDate(sourceDateKey);
+    for (var m in sourceMeals) {
+      _meals.insert(
+        0,
+        MealEntry(
+          id: DateTime.now().millisecondsSinceEpoch.toString() + m.id,
+          timestamp: DateTime.now(),
+          dateKey: targetDateKey,
+          mealType: m.mealType,
+          title: m.title,
+          notes: m.notes,
+          source: 'copy',
+          items: List.from(m.items),
+        ),
+      );
     }
+    notifyListeners();
   }
 
   void deleteMeal(String mealId) {
@@ -69,15 +85,30 @@ class LocalRepository extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<WorkoutEntry> getWorkoutsForDate(String dateKey) {
-    return _workoutEntries.where((w) => w.dateKey == dateKey).toList();
+  List<FoodItem> get favorites => List.unmodifiable(_favorites);
+
+  void toggleFavorite(FoodItem item) {
+    final idx = _favorites.indexWhere((f) => f.name == item.name);
+    if (idx != -1) {
+      _favorites.removeAt(idx);
+    } else {
+      _favorites.add(item);
+    }
+    notifyListeners();
   }
 
   List<WorkoutEntry> get allWorkouts => List.unmodifiable(_workoutEntries);
 
   void addWorkout(WorkoutEntry workout) {
     _workoutEntries.insert(0, workout);
+    for (var set in workout.sets) {
+      _lastExerciseHistory[set.exerciseName.toLowerCase().trim()] = set;
+    }
     notifyListeners();
+  }
+
+  WorkoutSet? getLastExerciseHistory(String exerciseName) {
+    return _lastExerciseHistory[exerciseName.toLowerCase().trim()];
   }
 
   void deleteWorkout(String workoutId) {
@@ -87,18 +118,20 @@ class LocalRepository extends ChangeNotifier {
 
   List<WeightEntry> get weightEntries => List.unmodifiable(_weightEntries);
 
-  void addWeight(double weightKg, {double? bodyFat, String? note}) {
+  void addWeight(double weightKg, {double? bodyFat, String? note, bool fromHealthConnect = false}) {
     _weightEntries.add(WeightEntry(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       date: DateTime.now(),
       weightKg: weightKg,
-      bodyFatPercentage: bodyFat,
+      bodyFatPercentage: bodyFat ?? _userProfile?.bodyFatPercentage,
       note: note,
+      syncedFromHealthConnect: fromHealthConnect,
     ));
     _userProfile = UserProfile(
       id: _userProfile!.id,
       heightCm: _userProfile!.heightCm,
       weightKg: weightKg,
+      bodyFatPercentage: bodyFat ?? _userProfile!.bodyFatPercentage,
       birthYear: _userProfile!.birthYear,
       sex: _userProfile!.sex,
       activityLevel: _userProfile!.activityLevel,
@@ -114,8 +147,10 @@ class LocalRepository extends ChangeNotifier {
 
   void deleteAllData() {
     _meals = [];
+    _favorites = [];
     _workoutEntries = [];
     _weightEntries = [];
+    _lastExerciseHistory.clear();
     _aiConfig = AIProviderConfig();
     _healthSyncEnabled = false;
     _initDefaultProfile();

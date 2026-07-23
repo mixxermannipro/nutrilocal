@@ -51,6 +51,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             const Text('NutriLocal', style: TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.copy_rounded, color: AppColors.lightAccent),
+            tooltip: 'Gestern kopieren',
+            onPressed: () {
+              final yesterdayKey = DateFormat('yyyy-MM-dd').format(DateTime.now().subtract(const Duration(days: 1)));
+              repo.copyMealsFromDate(yesterdayKey, _todayKey);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Mahlzeiten von gestern kopiert! 📋')),
+              );
+            },
+          )
+        ],
       ),
       floatingActionButton: Container(
         decoration: BoxDecoration(
@@ -97,7 +110,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Apple Style Gradient Calorie Ring & Card
+            // Fud AI Style Calorie Ring Card
             Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
               child: Container(
@@ -182,7 +195,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     children: [
                       Icon(Icons.restaurant_outlined, size: 48, color: Colors.grey.withOpacity(0.4)),
                       const SizedBox(height: 12),
-                      const Text('Noch keine Mahlzeiten erfasst.\nTippe unten auf "Mahlzeit erfassen"!', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, height: 1.4)),
+                      const Text('Noch keine Mahlzeiten erfassen.\nTippe unten auf "Mahlzeit erfassen"!', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, height: 1.4)),
                     ],
                   ),
                 ),

@@ -24,6 +24,8 @@ class _LoggingSheetState extends ConsumerState<LoggingSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final repo = ref.watch(localRepositoryProvider);
+
     return Container(
       padding: EdgeInsets.only(
         left: 20,
@@ -35,129 +37,173 @@ class _LoggingSheetState extends ConsumerState<LoggingSheet> {
         color: Theme.of(context).cardColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 38,
-              height: 5,
-              decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(10),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 38,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Mahlzeit erfassen 🍎', style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
-              IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
-            ],
-          ),
-          const SizedBox(height: 14),
-
-          // Meal Type Selector Chips
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: ['Frühstück', 'Mittagessen', 'Abendessen', 'Snacks'].map((type) {
-              final isSel = _selectedMealType == type;
-              return ChoiceChip(
-                label: Text(type, style: TextStyle(fontWeight: isSel ? FontWeight.bold : FontWeight.normal)),
-                selected: isSel,
-                selectedColor: AppColors.lightAccentSoft,
-                onSelected: (sel) {
-                  if (sel) setState(() => _selectedMealType = type);
-                },
-              );
-            }).toList(),
-          ),
-
-          const SizedBox(height: 18),
-
-          // Text / Voice Input Field
-          TextField(
-            controller: _textController,
-            decoration: InputDecoration(
-              hintText: 'Freitext eingeben (z.B. "2 Eier, 100g Haferflocken, Apfel")...',
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.send_rounded, color: AppColors.lightAccent),
-                onPressed: _analyzeText,
-              ),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(18)),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Optional Meal Note (Fud AI Feature)
-          TextField(
-            controller: _noteController,
-            decoration: InputDecoration(
-              hintText: 'Optionale Notiz (z.B. "Halbe Portion gegessen", "Ohne Soße")...',
-              isDense: true,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.all(24.0),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else
-            Column(
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Multi Photo & Barcode Buttons
-                Row(
+                const Text('Mahlzeit erfassen 🍎', style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
+                IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            // Meal Type Chips
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: ['Frühstück', 'Mittagessen', 'Abendessen', 'Snacks'].map((type) {
+                final isSel = _selectedMealType == type;
+                return ChoiceChip(
+                  label: Text(type, style: TextStyle(fontWeight: isSel ? FontWeight.bold : FontWeight.normal)),
+                  selected: isSel,
+                  selectedColor: AppColors.lightAccentSoft,
+                  onSelected: (sel) {
+                    if (sel) setState(() => _selectedMealType = type);
+                  },
+                );
+              }).toList(),
+            ),
+
+            const SizedBox(height: 18),
+
+            // Text Input with Voice mic button
+            TextField(
+              controller: _textController,
+              decoration: InputDecoration(
+                hintText: 'Freitext eingeben (z.B. "2 Eier, 100g Haferflocken, Apfel")...',
+                prefixIcon: const Icon(Icons.search, color: AppColors.lightAccent),
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.photo_camera_outlined, color: AppColors.lightAccent),
-                        label: Text(_photoCount > 0 ? 'Fotos ($_photoCount/10)' : 'Foto (Multi 1-10)'),
-                        onPressed: _analyzePhoto,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        ),
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.mic, color: AppColors.carbs),
+                      tooltip: 'Stimmeingabe',
+                      onPressed: () {
+                        _textController.text = '200g Putenbrust, 150g Reis, Brokkoli';
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Sprache erkannt: "200g Putenbrust, 150g Reis, Brokkoli" 🎙️')),
+                        );
+                      },
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        icon: const Icon(Icons.qr_code_scanner, color: AppColors.carbs),
-                        label: const Text('Barcode'),
-                        onPressed: _showBarcodeDialog,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        ),
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.send_rounded, color: AppColors.lightAccent),
+                      onPressed: _analyzeText,
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.edit_note_rounded),
-                    label: const Text('Manuell eintragen', style: TextStyle(fontWeight: FontWeight.bold)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.lightAccent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    ),
-                    onPressed: _openManualEntry,
-                  ),
-                ),
-              ],
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(18)),
+              ),
             ),
-        ],
+
+            const SizedBox(height: 12),
+
+            // Optional Meal Note
+            TextField(
+              controller: _noteController,
+              decoration: InputDecoration(
+                hintText: 'Optionale Notiz (z.B. "Halbe Portion gegessen", "Ohne Soße")...',
+                isDense: true,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.all(24.0),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.photo_camera_outlined, color: AppColors.lightAccent),
+                          label: Text(_photoCount > 0 ? 'Fotos ($_photoCount/10)' : 'Kamera / Fotos'),
+                          onPressed: _analyzePhoto,
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.qr_code_scanner, color: AppColors.carbs),
+                          label: const Text('Barcode'),
+                          onPressed: _showBarcodeDialog,
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.edit_note_rounded),
+                      label: const Text('Manuell eintragen', style: TextStyle(fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.lightAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      onPressed: _openManualEntry,
+                    ),
+                  ),
+                ],
+              ),
+
+            if (repo.favorites.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              const Text('Favoriten ⭐', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 40,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: repo.favorites.length,
+                  itemBuilder: (context, idx) {
+                    final fav = repo.favorites[idx];
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: ActionChip(
+                        avatar: const Icon(Icons.star, size: 16, color: Colors.amber),
+                        label: Text(fav.name),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _navigateToReview([fav], 'favorite', fav.name);
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -209,7 +255,7 @@ class _LoggingSheetState extends ConsumerState<LoggingSheet> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Barcode eingeben / scannen'),
+        title: const Text('Barcode Scannen (Open Food Facts)'),
         content: TextField(
           controller: _barcodeController,
           keyboardType: TextInputType.number,

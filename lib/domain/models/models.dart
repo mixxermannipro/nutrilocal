@@ -2,6 +2,7 @@ class UserProfile {
   final String id;
   final double heightCm;
   final double weightKg;
+  final double? bodyFatPercentage;
   final int birthYear;
   final String sex; // 'male', 'female', 'other'
   final double activityLevel; // 1.2, 1.375, 1.55, 1.725, 1.9
@@ -11,6 +12,7 @@ class UserProfile {
     required this.id,
     required this.heightCm,
     required this.weightKg,
+    this.bodyFatPercentage,
     required this.birthYear,
     required this.sex,
     required this.activityLevel,
@@ -59,7 +61,7 @@ class MealEntry {
   final String mealType; // Frühstück, Mittagessen, Abendessen, Snacks
   final String title;
   final String? notes;
-  final String source; // manual, barcode, ai_text, ai_photo
+  final String source; // manual, barcode, ai_text, ai_photo, favorite
   final List<FoodItem> items;
 
   MealEntry({
@@ -97,6 +99,7 @@ class FoodItem {
   final double sugarG;
   final double sodiumMg;
   final double? confidence;
+  final bool isFavorite;
 
   FoodItem({
     required this.id,
@@ -113,6 +116,7 @@ class FoodItem {
     this.sugarG = 0,
     this.sodiumMg = 0,
     this.confidence,
+    this.isFavorite = false,
   });
 
   FoodItem copyWithPortion(double newQuantity, double newGrams) {
@@ -132,6 +136,7 @@ class FoodItem {
       sugarG: sugarG * scale,
       sodiumMg: sodiumMg * scale,
       confidence: confidence,
+      isFavorite: isFavorite,
     );
   }
 }
@@ -141,10 +146,8 @@ class WorkoutEntry {
   final DateTime timestamp;
   final String dateKey;
   final String name;
-  final String muscleGroup; // Brust, Rücken, Beine, Schultern, Arme, Core
   final int durationMinutes;
   final double energyBurnedKcal;
-  final String? notes;
   final List<WorkoutSet> sets;
 
   WorkoutEntry({
@@ -152,27 +155,27 @@ class WorkoutEntry {
     required this.timestamp,
     required this.dateKey,
     required this.name,
-    required this.muscleGroup,
     required this.durationMinutes,
     required this.energyBurnedKcal,
-    this.notes,
     required this.sets,
   });
 }
 
 class WorkoutSet {
   final String exerciseName;
-  final int setOrder;
   final double weightKg;
   final int reps;
-  final double? rpe; // Rate of Perceived Exertion (1-10)
+  final String? note; // e.g. "+10kg Zusatzgewicht"
+  final double? previousWeightKg;
+  final int? previousReps;
 
   WorkoutSet({
     required this.exerciseName,
-    required this.setOrder,
     required this.weightKg,
     required this.reps,
-    this.rpe,
+    this.note,
+    this.previousWeightKg,
+    this.previousReps,
   });
 }
 
@@ -182,6 +185,7 @@ class WeightEntry {
   final double weightKg;
   final double? bodyFatPercentage;
   final String? note;
+  final bool syncedFromHealthConnect;
 
   WeightEntry({
     required this.id,
@@ -189,6 +193,7 @@ class WeightEntry {
     required this.weightKg,
     this.bodyFatPercentage,
     this.note,
+    this.syncedFromHealthConnect = false,
   });
 }
 

@@ -1,0 +1,10 @@
+.assetsignore
+.gitignore
+.github/
+.DS_Store
+**/.DS_Store
+node_modules/
+package.json
+package-lock.json
+wrangler.toml
+scripts/

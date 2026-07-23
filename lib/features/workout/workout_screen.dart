@@ -12,8 +12,6 @@ class WorkoutScreen extends ConsumerStatefulWidget {
 }
 
 class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
-  final List<String> _muscleGroups = ['Brust', 'Rücken', 'Beine', 'Schultern', 'Arme', 'Core'];
-
   @override
   Widget build(BuildContext context) {
     final repo = ref.watch(localRepositoryProvider);
@@ -28,7 +26,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
         backgroundColor: AppColors.protein,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
-        label: const Text('Workout erfassen', style: TextStyle(fontWeight: FontWeight.bold)),
+        label: const Text('Workout erstellen', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       body: workouts.isEmpty
           ? Center(
@@ -40,7 +38,7 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                     Icon(Icons.fitness_center_outlined, size: 54, color: Colors.grey.withOpacity(0.4)),
                     const SizedBox(height: 16),
                     const Text(
-                      'Noch keine Workouts erfasst.\nTippe unten auf "Workout erfassen"!',
+                      'Noch keine Workouts erfasst.\nTippe auf "Workout erstellen", um dein erstes Training zu loggen!',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.grey, height: 1.4, fontSize: 15),
                     ),
@@ -82,26 +80,26 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: AppColors.lightAccent.withOpacity(0.12),
+                                  color: AppColors.protein.withOpacity(0.15),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: Text('~${w.energyBurnedKcal.round()} kcal',
-                                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.lightAccent, fontSize: 13)),
+                                child: Text('${w.durationMinutes} Min • ~${w.energyBurnedKcal.round()} kcal',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.protein, fontSize: 13)),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 4),
-                          Text('${w.muscleGroup} • ${w.durationMinutes} Minuten',
-                              style: const TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.w500)),
                           const Divider(height: 24),
                           ...w.sets.map((s) => Padding(
-                                padding: const EdgeInsets.only(bottom: 6.0),
+                                padding: const EdgeInsets.only(bottom: 8.0),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('• ${s.exerciseName}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                                    Text('${s.weightKg} kg × ${s.reps} Wdh ${s.rpe != null ? "(RPE ${s.rpe})" : ""}',
-                                        style: const TextStyle(color: AppColors.protein, fontWeight: FontWeight.bold, fontSize: 13)),
+                                    Expanded(
+                                      child: Text('• ${s.exerciseName} ${s.note != null && s.note!.isNotEmpty ? "(${s.note})" : ""}',
+                                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                                    ),
+                                    Text('${s.weightKg > 0 ? "${s.weightKg} kg × " : ""}${s.reps} WDH',
+                                        style: const TextStyle(color: AppColors.protein, fontWeight: FontWeight.bold, fontSize: 15)),
                                   ],
                                 ),
                               )),
@@ -116,85 +114,127 @@ class _WorkoutScreenState extends ConsumerState<WorkoutScreen> {
   }
 
   void _showAddWorkoutDialog() {
-    final nameCtrl = TextEditingController(text: 'Oberkörper Training');
-    final durationCtrl = TextEditingController(text: '45');
-    final burnCtrl = TextEditingController(text: '300');
-    final exerciseCtrl = TextEditingController(text: 'Bankdrücken');
-    final weightCtrl = TextEditingController(text: '70');
-    final repsCtrl = TextEditingController(text: '10');
-    String selectedMuscle = 'Brust';
+    final repo = ref.read(localRepositoryProvider);
+    final workoutNameCtrl = TextEditingController(text: 'Oberkörper / Pull Workout');
+    final exerciseCtrl = TextEditingController(text: 'Pull-ups');
+    final weightCtrl = TextEditingController(text: '10');
+    final repsCtrl = TextEditingController(text: '6');
+    final noteCtrl = TextEditingController(text: '+10kg Zusatzgewicht');
+
+    String previousHistoryText = '';
+    final lastSet = repo.getLastExerciseHistory(exerciseCtrl.text);
+    if (lastSet != null) {
+      previousHistoryText = 'Letztes Mal: ${lastSet.weightKg > 0 ? "${lastSet.weightKg}kg × " : ""}${lastSet.reps} WDH ${lastSet.note != null ? "(${lastSet.note})" : ""}';
+    }
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Neues Workout erfassen'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Workout Name')),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                value: selectedMuscle,
-                decoration: const InputDecoration(labelText: 'Fokus Muskelgruppe'),
-                items: _muscleGroups.map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
-                onChanged: (v) => selectedMuscle = v!,
-              ),
-              const SizedBox(height: 12),
-              Row(
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            title: const Text('Neues Workout erstellen 🏋️‍♂️'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(child: TextField(controller: durationCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Dauer (Min)'))),
-                  const SizedBox(width: 12),
-                  Expanded(child: TextField(controller: burnCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Kcal Burn'))),
-                ],
-              ),
-              const Divider(height: 24),
-              const Text('Übung & Satz Hinzufügen', style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              TextField(controller: exerciseCtrl, decoration: const InputDecoration(labelText: 'Übungsname')),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(child: TextField(controller: weightCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Gewicht (kg)'))),
-                  const SizedBox(width: 12),
-                  Expanded(child: TextField(controller: repsCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Wiederholungen'))),
-                ],
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Abbrechen')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.protein, foregroundColor: Colors.white),
-            onPressed: () {
-              final repo = ref.read(localRepositoryProvider);
-              final todayKey = DateTime.now().toString().split(' ')[0];
-
-              final workout = WorkoutEntry(
-                id: DateTime.now().millisecondsSinceEpoch.toString(),
-                timestamp: DateTime.now(),
-                dateKey: todayKey,
-                name: nameCtrl.text.isNotEmpty ? nameCtrl.text : 'Krafttraining',
-                muscleGroup: selectedMuscle,
-                durationMinutes: int.tryParse(durationCtrl.text) ?? 45,
-                energyBurnedKcal: double.tryParse(burnCtrl.text) ?? 300,
-                sets: [
-                  WorkoutSet(
-                    exerciseName: exerciseCtrl.text.isNotEmpty ? exerciseCtrl.text : 'Grundübung',
-                    setOrder: 1,
-                    weightKg: double.tryParse(weightCtrl.text) ?? 60,
-                    reps: int.tryParse(repsCtrl.text) ?? 10,
+                  TextField(
+                    controller: workoutNameCtrl,
+                    decoration: const InputDecoration(labelText: 'Workout Name (z.B. Pull Workout)'),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Übung & Sätze Hinzufügen', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: exerciseCtrl,
+                    decoration: const InputDecoration(labelText: 'Übungsname (z.B. Pull-ups, Bankdrücken)'),
+                    onChanged: (val) {
+                      final hist = repo.getLastExerciseHistory(val);
+                      setDialogState(() {
+                        if (hist != null) {
+                          previousHistoryText = 'Letztes Mal: ${hist.weightKg > 0 ? "${hist.weightKg}kg × " : ""}${hist.reps} WDH ${hist.note != null ? "(${hist.note})" : ""}';
+                        } else {
+                          previousHistoryText = 'Erstes Mal ausgeführt!';
+                        }
+                      });
+                    },
+                  ),
+                  if (previousHistoryText.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.protein.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        previousHistoryText,
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.protein, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: noteCtrl,
+                    decoration: const InputDecoration(labelText: 'Notiz / Zusatzgewicht (z.B. +10kg Zusatzgewicht)'),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: weightCtrl,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(labelText: 'Gewicht (kg)'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: repsCtrl,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(labelText: 'Wiederholungen (WDH)'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
-              );
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Abbrechen')),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.protein, foregroundColor: Colors.white),
+                onPressed: () {
+                  final todayKey = DateTime.now().toString().split(' ')[0];
+                  final workout = WorkoutEntry(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    timestamp: DateTime.now(),
+                    dateKey: todayKey,
+                    name: workoutNameCtrl.text.isNotEmpty ? workoutNameCtrl.text : 'Krafttraining',
+                    durationMinutes: 45,
+                    energyBurnedKcal: 280,
+                    sets: [
+                      WorkoutSet(
+                        exerciseName: exerciseCtrl.text.isNotEmpty ? exerciseCtrl.text : 'Grundübung',
+                        weightKg: double.tryParse(weightCtrl.text) ?? 0,
+                        reps: int.tryParse(repsCtrl.text) ?? 6,
+                        note: noteCtrl.text.trim(),
+                      ),
+                    ],
+                  );
 
-              repo.addWorkout(workout);
-              Navigator.pop(ctx);
-            },
-            child: const Text('Speichern'),
-          )
-        ],
+                  repo.addWorkout(workout);
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Workout & Progression gespeichert! 💪')),
+                  );
+                },
+                child: const Text('Speichern'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
