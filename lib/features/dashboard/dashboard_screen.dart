@@ -38,10 +38,24 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('NutriLocal'),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: AppColors.calorieRingGradient,
+              ),
+              child: const Icon(Icons.bolt, color: Colors.white, size: 18),
+            ),
+            const SizedBox(width: 8),
+            const Text('NutriLocal', style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.water_drop_outlined, color: AppColors.water),
+            icon: const Icon(Icons.water_drop, color: AppColors.water),
             onPressed: () {
               repo.addWater(250, _todayKey);
               setState(() {});
@@ -52,15 +66,28 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           )
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: widget.onOpenLogging,
-        backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppColors.darkAccent : AppColors.lightAccent,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('Mahlzeit loggen', style: TextStyle(fontWeight: FontWeight.bold)),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.lightAccent.withOpacity(0.3),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: widget.onOpenLogging,
+          backgroundColor: AppColors.lightAccent,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          icon: const Icon(Icons.add_rounded, size: 24),
+          label: const Text('Mahlzeit erfassen', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -70,18 +97,29 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               children: [
                 Text(
                   DateFormat('EEEE, d. MMMM', 'de_DE').format(DateTime.now()),
-                  style: const TextStyle(fontSize: 16, color: Colors.grey, fontWeight: FontWeight.w500),
+                  style: const TextStyle(fontSize: 15, color: Colors.grey, fontWeight: FontWeight.w600),
                 ),
-                Text('Ziel: ${profile.targetKcal.round()} kcal', style: const TextStyle(fontWeight: FontWeight.bold)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.lightAccent.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text('Ziel: ${profile.targetKcal.round()} kcal', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.lightAccent)),
+                ),
               ],
             ),
             const SizedBox(height: 16),
 
-            // Calorie Ring & Summary Card
+            // Apple Style Gradient Calorie Ring & Card
             Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(28),
+                  gradient: AppColors.glassHeaderGradient,
+                ),
+                padding: const EdgeInsets.all(22.0),
                 child: Column(
                   children: [
                     Row(
@@ -90,29 +128,29 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('${totalEatenKcal.round()}', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-                            const Text('Gegessen', style: TextStyle(color: Colors.grey)),
+                            Text('${totalEatenKcal.round()}', style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -1)),
+                            const Text('Gegessen', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500)),
                           ],
                         ),
-                        // Ring Visualizer
+                        // Ring Visualizer with Gradient
                         Stack(
                           alignment: Alignment.center,
                           children: [
                             SizedBox(
-                              width: 100,
-                              height: 100,
+                              width: 110,
+                              height: 110,
                               child: CircularProgressIndicator(
                                 value: (totalEatenKcal / profile.targetKcal).clamp(0.0, 1.0),
-                                strokeWidth: 10,
-                                backgroundColor: Colors.grey.withOpacity(0.2),
+                                strokeWidth: 12,
+                                backgroundColor: Colors.grey.withOpacity(0.15),
                                 color: remainingKcal >= 0 ? AppColors.lightAccent : AppColors.danger,
                               ),
                             ),
                             Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text('${remainingKcal.abs()}', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: remainingKcal >= 0 ? null : AppColors.danger)),
-                                Text(remainingKcal >= 0 ? 'Verbleibend' : 'Drüber', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                Text('${remainingKcal.abs()}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: remainingKcal >= 0 ? null : AppColors.danger)),
+                                Text(remainingKcal >= 0 ? 'Verbleibend' : 'Drüber', style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w600)),
                               ],
                             ),
                           ],
@@ -120,8 +158,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('${(profile.targetKcal - totalEatenKcal).round()}', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-                            const Text('Rest Kcal', style: TextStyle(color: Colors.grey)),
+                            Text('${(profile.targetKcal - totalEatenKcal).round()}', style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, letterSpacing: -1)),
+                            const Text('Rest Kcal', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500)),
                           ],
                         ),
                       ],
@@ -138,26 +176,33 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
 
-            // Quick Water Tracker Card
+            // Fluid Water Tracker Card
             Card(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 14.0),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
                 child: Row(
                   children: [
-                    const Icon(Icons.water_drop, color: AppColors.water, size: 28),
-                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.water.withOpacity(0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.water_drop, color: AppColors.water, size: 24),
+                    ),
+                    const SizedBox(width: 14),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Wasser: $waterMl / ${repo.waterGoalMl} ml', style: const TextStyle(fontWeight: FontWeight.bold)),
-                        const Text('Tagesfortschritt', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        Text('Wasser: $waterMl / ${repo.waterGoalMl} ml', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                        const Text('Hydratation heute', style: TextStyle(color: Colors.grey, fontSize: 12)),
                       ],
                     ),
                     const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.add_circle_outline, color: AppColors.water),
+                    IconButton.filledTonal(
+                      icon: const Icon(Icons.add, color: AppColors.water),
                       onPressed: () {
                         repo.addWater(250, _todayKey);
                         setState(() {});
@@ -168,23 +213,29 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 22),
 
-            // Today Meals Section
+            // Today Meals Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Heutige Mahlzeiten', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text('${meals.length} Einträge', style: const TextStyle(color: Colors.grey)),
+                const Text('Heutige Mahlzeiten', style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700, letterSpacing: -0.5)),
+                Text('${meals.length} Einträge', style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w600)),
               ],
             ),
             const SizedBox(height: 12),
 
             if (meals.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(32.0),
+              Padding(
+                padding: const EdgeInsets.all(36.0),
                 child: Center(
-                  child: Text('Noch keine Mahlzeiten erfasst. Tippe auf "+ Mahlzeit loggen"!', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
+                  child: Column(
+                    children: [
+                      Icon(Icons.restaurant_outlined, size: 48, color: Colors.grey.withOpacity(0.4)),
+                      const SizedBox(height: 12),
+                      const Text('Noch keine Mahlzeiten erfassen.\nTippe unten auf "Mahlzeit erfassen"!', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, height: 1.4)),
+                    ],
+                  ),
                 ),
               )
             else
@@ -197,9 +248,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   return Card(
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ListTile(
-                      title: Text(meal.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text('${meal.mealType} • ${meal.totalProtein.round()}g P | ${meal.totalCarbs.round()}g K | ${meal.totalFat.round()}g F'),
-                      trailing: Text('${meal.totalKcal.round()} kcal', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.lightAccent)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+                      title: Text(meal.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Text('${meal.mealType} • ${meal.totalProtein.round()}g P | ${meal.totalCarbs.round()}g K | ${meal.totalFat.round()}g F', style: const TextStyle(fontSize: 13)),
+                      ),
+                      trailing: Text('${meal.totalKcal.round()} kcal', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: AppColors.lightAccent)),
                     ),
                   );
                 },
@@ -222,12 +277,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             Text('${current.round()} / ${target.round()} g', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 5),
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: LinearProgressIndicator(
             value: progress,
-            minHeight: 8,
+            minHeight: 9,
             backgroundColor: color.withOpacity(0.15),
             color: color,
           ),

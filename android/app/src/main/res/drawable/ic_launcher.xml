@@ -4,10 +4,33 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    
+    <!-- Background Squircle -->
+    <path
+        android:fillColor="#0D1117"
+        android:pathData="M54,0 C80,0 108,28 108,54 C108,80 80,108 54,108 C28,108 0,80 0,54 C0,28 28,0 54,0 Z"/>
+        
+    <!-- Calorie Ring Glow Outer -->
+    <path
+        android:fillColor="#1E3A2D"
+        android:pathData="M54,20 A34,34 0 1,1 53.9,20 Z" />
+
+    <!-- Main Gradient Ring (Emerald Green & Vibrant Rose) -->
     <path
         android:fillColor="#2FA36B"
-        android:pathData="M0,0h108v108h-108z"/>
+        android:pathData="M54,24 A30,30 0 1,1 53.9,24 Z" />
+
+    <!-- Inner Core Cutout -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,30 L64,50 L84,50 L68,62 L74,82 L54,70 L34,82 L40,62 L24,50 L44,50 Z"/>
+        android:fillColor="#0D1117"
+        android:pathData="M54,34 A20,20 0 1,1 53.9,34 Z" />
+
+    <!-- Center Apple-like Leaf Sparkle -->
+    <path
+        android:fillColor="#4CC38A"
+        android:pathData="M54,42 C54,42 62,48 62,56 C62,64 54,68 54,68 C54,68 46,64 46,56 C46,48 54,42 54,42 Z"/>
+
+    <path
+        android:fillColor="#FF5E7E"
+        android:pathData="M54,38 C56,40 60,42 60,42 C60,42 56,44 54,46 C52,44 48,42 48,42 C48,42 52,40 54,38 Z"/>
 </vector>

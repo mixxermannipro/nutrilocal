@@ -16,9 +16,11 @@ class LoggingSheet extends ConsumerStatefulWidget {
 
 class _LoggingSheetState extends ConsumerState<LoggingSheet> {
   final _textController = TextEditingController();
+  final _noteController = TextEditingController();
   final _barcodeController = TextEditingController();
   bool _isLoading = false;
   String _selectedMealType = 'Frühstück';
+  int _photoCount = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -31,28 +33,39 @@ class _LoggingSheetState extends ConsumerState<LoggingSheet> {
       ),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Center(
+            child: Container(
+              width: 38,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Mahlzeit erfassen 🍎', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text('Mahlzeit erfassen 🍎', style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
               IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
-          // Meal Type Selector
+          // Meal Type Selector Chips
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: ['Frühstück', 'Mittagessen', 'Abendessen', 'Snacks'].map((type) {
               final isSel = _selectedMealType == type;
               return ChoiceChip(
-                label: Text(type),
+                label: Text(type, style: TextStyle(fontWeight: isSel ? FontWeight.bold : FontWeight.normal)),
                 selected: isSel,
                 selectedColor: AppColors.lightAccentSoft,
                 onSelected: (sel) {
@@ -62,7 +75,7 @@ class _LoggingSheetState extends ConsumerState<LoggingSheet> {
             }).toList(),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
 
           // Text / Voice Input Field
           TextField(
@@ -70,26 +83,42 @@ class _LoggingSheetState extends ConsumerState<LoggingSheet> {
             decoration: InputDecoration(
               hintText: 'Freitext eingeben (z.B. "2 Eier, 100g Haferflocken, Apfel")...',
               suffixIcon: IconButton(
-                icon: const Icon(Icons.send, color: AppColors.lightAccent),
+                icon: const Icon(Icons.send_rounded, color: AppColors.lightAccent),
                 onPressed: _analyzeText,
               ),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(18)),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Optional Meal Note (Fud AI Feature)
+          TextField(
+            controller: _noteController,
+            decoration: InputDecoration(
+              hintText: 'Optionale Notiz (z.B. "Halbe Portion gegessen", "Ohne Soße")...',
+              isDense: true,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
             ),
           ),
 
           const SizedBox(height: 20),
 
           if (_isLoading)
-            const Center(child: CircularProgressIndicator())
+            const Padding(
+              padding: EdgeInsets.all(24.0),
+              child: Center(child: CircularProgressIndicator()),
+            )
           else
             Column(
               children: [
+                // Multi Photo & Barcode Buttons
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        icon: const Icon(Icons.camera_alt, color: AppColors.lightAccent),
-                        label: const Text('Foto (Multi)'),
+                        icon: const Icon(Icons.photo_camera_outlined, color: AppColors.lightAccent),
+                        label: Text(_photoCount > 0 ? 'Fotos ($_photoCount/10)' : 'Foto (Multi 1-10)'),
                         onPressed: _analyzePhoto,
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -115,8 +144,8 @@ class _LoggingSheetState extends ConsumerState<LoggingSheet> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    icon: const Icon(Icons.edit_note),
-                    label: const Text('Manuell eintragen'),
+                    icon: const Icon(Icons.edit_note_rounded),
+                    label: const Text('Manuell eintragen', style: TextStyle(fontWeight: FontWeight.bold)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.lightAccent,
                       foregroundColor: Colors.white,
@@ -137,10 +166,13 @@ class _LoggingSheetState extends ConsumerState<LoggingSheet> {
     final text = _textController.text.trim();
     if (text.isEmpty) return;
 
+    final note = _noteController.text.trim();
+    final combinedInput = note.isNotEmpty ? '$text (Notiz: $note)' : text;
+
     setState(() => _isLoading = true);
     final repo = ref.read(localRepositoryProvider);
     final items = await AIService.analyzeTextOrPhotos(
-      textInput: text,
+      textInput: combinedInput,
       base64Images: [],
       config: repo.aiConfig,
     );
@@ -153,10 +185,15 @@ class _LoggingSheetState extends ConsumerState<LoggingSheet> {
   }
 
   void _analyzePhoto() async {
-    setState(() => _isLoading = true);
+    final note = _noteController.text.trim();
+    setState(() {
+      _photoCount = (_photoCount + 1).clamp(1, 10);
+      _isLoading = true;
+    });
+
     final repo = ref.read(localRepositoryProvider);
     final items = await AIService.analyzeTextOrPhotos(
-      textInput: 'Foto Mahlzeit',
+      textInput: note.isNotEmpty ? 'Foto Mahlzeit (Notiz: $note)' : 'Foto Mahlzeit',
       base64Images: [],
       config: repo.aiConfig,
     );
