@@ -1,46 +1,79 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/models.dart';
-import 'package:intl/intl.dart';
+import '../db/sqlite_database.dart';
+import '../datasources/secure_storage_service.dart';
 
 class LocalRepository extends ChangeNotifier {
   UserProfile? _userProfile;
-  List<MealEntry> _meals = [];
+  List<MealEntry> _cachedMeals = [];
   List<FoodItem> _favorites = [];
   List<WorkoutEntry> _workoutEntries = [];
   List<WeightEntry> _weightEntries = [];
   final Map<String, WorkoutSet> _lastExerciseHistory = {};
   AIProviderConfig _aiConfig = AIProviderConfig();
   bool _healthSyncEnabled = false;
+  bool _isInitialized = false;
 
   LocalRepository() {
-    _initDefaultProfile();
+    init();
   }
 
-  void _initDefaultProfile() {
-    _userProfile = UserProfile(
-      id: 'default_user',
-      heightCm: 178,
-      weightKg: 75.0,
-      bodyFatPercentage: 18.0,
-      birthYear: 1995,
-      sex: 'male',
-      activityLevel: 1.55,
-      pace: 'maintain',
-    );
+  bool get isInitialized => _isInitialized;
+  bool get hasProfile => _userProfile != null;
+
+  Future<void> init() async {
+    try {
+      _userProfile = await SqliteDatabase.loadUserProfile();
+      _workoutEntries = await SqliteDatabase.loadAllWorkouts();
+      _weightEntries = await SqliteDatabase.loadWeightEntries();
+
+      final keys = await SecureStorageService.readApiKeys();
+      _aiConfig = AIProviderConfig(
+        primaryApiKey: keys['primaryApiKey'] ?? '',
+        fallbackApiKey: keys['fallbackApiKey'] ?? '',
+        speechApiKey: keys['speechApiKey'] ?? '',
+      );
+
+      for (var w in _workoutEntries) {
+        for (var set in w.sets) {
+          _lastExerciseHistory[set.exerciseName.toLowerCase().trim()] = set;
+        }
+      }
+    } catch (e) {
+      debugPrint('LocalRepository init error: $e');
+    } finally {
+      _isInitialized = true;
+      notifyListeners();
+    }
   }
 
-  UserProfile get userProfile => _userProfile!;
+  UserProfile get userProfile => _userProfile ?? UserProfile(
+    id: 'default_user',
+    heightCm: 178,
+    weightKg: 75.0,
+    bodyFatPercentage: 18.0,
+    birthYear: 1995,
+    sex: 'male',
+    activityLevel: 1.55,
+    pace: 'maintain',
+  );
 
-  void saveUserProfile(UserProfile profile) {
+  Future<void> saveUserProfile(UserProfile profile) async {
     _userProfile = profile;
+    await SqliteDatabase.saveUserProfile(profile);
     notifyListeners();
   }
 
   AIProviderConfig get aiConfig => _aiConfig;
 
-  void saveAIConfig(AIProviderConfig config) {
+  Future<void> saveAIConfig(AIProviderConfig config) async {
     _aiConfig = config;
+    await SecureStorageService.saveApiKeys(
+      primaryKey: config.primaryApiKey,
+      fallbackKey: config.fallbackApiKey,
+      speechKey: config.speechApiKey,
+    );
     notifyListeners();
   }
 
@@ -52,36 +85,46 @@ class LocalRepository extends ChangeNotifier {
   }
 
   List<MealEntry> getMealsForDate(String dateKey) {
-    return _meals.where((m) => m.dateKey == dateKey).toList();
+    // Return cached meals for date
+    return _cachedMeals.where((m) => m.dateKey == dateKey).toList();
   }
 
-  void addMeal(MealEntry meal) {
-    _meals.insert(0, meal);
+  Future<List<MealEntry>> loadMealsForDate(String dateKey) async {
+    final meals = await SqliteDatabase.loadMealsForDate(dateKey);
+    _cachedMeals.removeWhere((m) => m.dateKey == dateKey);
+    _cachedMeals.addAll(meals);
+    notifyListeners();
+    return meals;
+  }
+
+  Future<void> addMeal(MealEntry meal) async {
+    _cachedMeals.insert(0, meal);
+    await SqliteDatabase.saveMeal(meal);
     notifyListeners();
   }
 
-  void copyMealsFromDate(String sourceDateKey, String targetDateKey) {
-    final sourceMeals = getMealsForDate(sourceDateKey);
+  Future<void> copyMealsFromDate(String sourceDateKey, String targetDateKey) async {
+    final sourceMeals = await SqliteDatabase.loadMealsForDate(sourceDateKey);
     for (var m in sourceMeals) {
-      _meals.insert(
-        0,
-        MealEntry(
-          id: DateTime.now().millisecondsSinceEpoch.toString() + m.id,
-          timestamp: DateTime.now(),
-          dateKey: targetDateKey,
-          mealType: m.mealType,
-          title: m.title,
-          notes: m.notes,
-          source: 'copy',
-          items: List.from(m.items),
-        ),
+      final newMeal = MealEntry(
+        id: DateTime.now().millisecondsSinceEpoch.toString() + m.id,
+        timestamp: DateTime.now(),
+        dateKey: targetDateKey,
+        mealType: m.mealType,
+        title: m.title,
+        notes: m.notes,
+        source: 'copy',
+        items: List.from(m.items),
       );
+      _cachedMeals.insert(0, newMeal);
+      await SqliteDatabase.saveMeal(newMeal);
     }
     notifyListeners();
   }
 
-  void deleteMeal(String mealId) {
-    _meals.removeWhere((m) => m.id == mealId);
+  Future<void> deleteMeal(String mealId) async {
+    _cachedMeals.removeWhere((m) => m.id == mealId);
+    await SqliteDatabase.deleteMeal(mealId);
     notifyListeners();
   }
 
@@ -99,8 +142,9 @@ class LocalRepository extends ChangeNotifier {
 
   List<WorkoutEntry> get allWorkouts => List.unmodifiable(_workoutEntries);
 
-  void addWorkout(WorkoutEntry workout) {
+  Future<void> addWorkout(WorkoutEntry workout) async {
     _workoutEntries.insert(0, workout);
+    await SqliteDatabase.saveWorkout(workout);
     for (var set in workout.sets) {
       _lastExerciseHistory[set.exerciseName.toLowerCase().trim()] = set;
     }
@@ -111,49 +155,60 @@ class LocalRepository extends ChangeNotifier {
     return _lastExerciseHistory[exerciseName.toLowerCase().trim()];
   }
 
-  void deleteWorkout(String workoutId) {
+  Future<void> deleteWorkout(String workoutId) async {
     _workoutEntries.removeWhere((w) => w.id == workoutId);
+    await SqliteDatabase.deleteWorkout(workoutId);
     notifyListeners();
   }
 
   List<WeightEntry> get weightEntries => List.unmodifiable(_weightEntries);
 
-  void addWeight(double weightKg, {double? bodyFat, String? note, bool fromHealthConnect = false}) {
-    _weightEntries.add(WeightEntry(
+  Future<void> addWeight(double weightKg, {double? bodyFat, String? note, bool fromHealthConnect = false}) async {
+    final entry = WeightEntry(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       date: DateTime.now(),
       weightKg: weightKg,
       bodyFatPercentage: bodyFat ?? _userProfile?.bodyFatPercentage,
       note: note,
       syncedFromHealthConnect: fromHealthConnect,
-    ));
-    _userProfile = UserProfile(
-      id: _userProfile!.id,
-      heightCm: _userProfile!.heightCm,
-      weightKg: weightKg,
-      bodyFatPercentage: bodyFat ?? _userProfile!.bodyFatPercentage,
-      birthYear: _userProfile!.birthYear,
-      sex: _userProfile!.sex,
-      activityLevel: _userProfile!.activityLevel,
-      pace: _userProfile!.pace,
     );
+    _weightEntries.add(entry);
+    await SqliteDatabase.saveWeightEntry(entry);
+
+    if (_userProfile != null) {
+      _userProfile = UserProfile(
+        id: _userProfile!.id,
+        heightCm: _userProfile!.heightCm,
+        weightKg: weightKg,
+        bodyFatPercentage: bodyFat ?? _userProfile!.bodyFatPercentage,
+        birthYear: _userProfile!.birthYear,
+        sex: _userProfile!.sex,
+        activityLevel: _userProfile!.activityLevel,
+        pace: _userProfile!.pace,
+      );
+      await SqliteDatabase.saveUserProfile(_userProfile!);
+    }
     notifyListeners();
   }
 
-  void deleteWeight(String weightId) {
+  Future<void> deleteWeight(String weightId) async {
     _weightEntries.removeWhere((w) => w.id == weightId);
+    await SqliteDatabase.deleteWeightEntry(weightId);
     notifyListeners();
   }
 
-  void deleteAllData() {
-    _meals = [];
+  Future<void> deleteAllData() async {
+    _cachedMeals = [];
     _favorites = [];
     _workoutEntries = [];
     _weightEntries = [];
     _lastExerciseHistory.clear();
     _aiConfig = AIProviderConfig();
     _healthSyncEnabled = false;
-    _initDefaultProfile();
+    _userProfile = null;
+
+    await SqliteDatabase.deleteAllData();
+    await SecureStorageService.deleteAllKeys();
     notifyListeners();
   }
 }

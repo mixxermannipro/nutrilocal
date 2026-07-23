@@ -13,10 +13,9 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
-  int _currentStep = 0;
-  double _heightCm = 178;
-  double _weightKg = 75;
-  int _birthYear = 1995;
+  final _heightCtrl = TextEditingController(text: '178');
+  final _weightCtrl = TextEditingController(text: '75');
+  final _yearCtrl = TextEditingController(text: '1995');
   String _sex = 'male';
   double _activityLevel = 1.55;
   String _pace = 'maintain';
@@ -24,192 +23,149 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.bolt, color: AppColors.lightAccent, size: 28),
-                  const SizedBox(width: 8),
-                  const Text('NutriLocal', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                  const Spacer(),
-                  Text('Schritt ${_currentStep + 1} von 3', style: const TextStyle(color: Colors.grey)),
-                ],
-              ),
-              const SizedBox(height: 32),
-              Expanded(
-                child: _buildStepContent(),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (_currentStep > 0)
-                    OutlinedButton(
-                      onPressed: () => setState(() => _currentStep--),
-                      child: const Text('Zurück'),
-                    )
-                  else
-                    const SizedBox.shrink(),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.lightAccent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    ),
-                    onPressed: () {
-                      if (_currentStep < 2) {
-                        setState(() => _currentStep++);
-                      } else {
-                        _finishOnboarding();
-                      }
-                    },
-                    child: Text(_currentStep == 2 ? 'Starten' : 'Weiter'),
+      appBar: AppBar(
+        title: const Text('NutriLocal Einrichtung 🍏'),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Willkommen bei NutriLocal!',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              '100% lokal, privat und ohne Registrierung. Richte jetzt deine Kalorien- & Nährwertziele ein.',
+              style: TextStyle(color: Colors.grey, fontSize: 14),
+            ),
+            const SizedBox(height: 24),
+
+            // Geschlecht
+            const Text('Geschlecht', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: ChoiceChip(
+                    label: const Center(child: Text('Männlich')),
+                    selected: _sex == 'male',
+                    onSelected: (s) => setState(() => _sex = 'male'),
                   ),
-                ],
-              )
-            ],
-          ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ChoiceChip(
+                    label: const Center(child: Text('Weiblich')),
+                    selected: _sex == 'female',
+                    onSelected: (s) => setState(() => _sex = 'female'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            // Körperwerte
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _heightCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Größe (cm)', border: OutlineInputBorder()),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: _weightCtrl,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: const InputDecoration(labelText: 'Gewicht (kg)', border: OutlineInputBorder()),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            TextField(
+              controller: _yearCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Geburtsjahr (z.B. 1995)', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 20),
+
+            // Aktivitätslevel
+            const Text('Aktivitätslevel', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<double>(
+              value: _activityLevel,
+              decoration: const InputDecoration(border: OutlineInputBorder()),
+              items: const [
+                DropdownMenuItem(value: 1.2, child: Text('Sitzend (Wenig / kein Sport)')),
+                DropdownMenuItem(value: 1.375, child: Text('Leicht aktiv (1-3x Sport/Woche)')),
+                DropdownMenuItem(value: 1.55, child: Text('Moderat aktiv (3-5x Sport/Woche)')),
+                DropdownMenuItem(value: 1.725, child: Text('Sehr aktiv (6-7x Sport/Woche)')),
+                DropdownMenuItem(value: 1.9, child: Text('Extrem aktiv (Harte Arbeit / Leistungssport)')),
+              ],
+              onChanged: (v) => setState(() => _activityLevel = v!),
+            ),
+            const SizedBox(height: 20),
+
+            // Ziel
+            const Text('Ernährungsziel', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: _pace,
+              decoration: const InputDecoration(border: OutlineInputBorder()),
+              items: const [
+                DropdownMenuItem(value: 'lose_fast', child: Text('Schnell Abnehmen (-20% Kcal)')),
+                DropdownMenuItem(value: 'lose_slow', child: Text('Moderat Abnehmen (-15% Kcal)')),
+                DropdownMenuItem(value: 'maintain', child: Text('Gewicht Halten')),
+                DropdownMenuItem(value: 'gain_slow', child: Text('Langsam Aufbauen (+10% Kcal)')),
+                DropdownMenuItem(value: 'gain_fast', child: Text('Schnell Aufbauen (+15% Kcal)')),
+              ],
+              onChanged: (v) => setState(() => _pace = v!),
+            ),
+
+            const SizedBox(height: 32),
+
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.lightAccent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: _completeOnboarding,
+                child: const Text('Profil Speichern & Starten', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildStepContent() {
-    switch (_currentStep) {
-      case 0:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Willkommen bei NutriLocal 👋', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            const Text('100% lokal, privat, ohne Cloud & ohne Werbung. Passe deine Körperdaten an:', style: TextStyle(color: Colors.grey)),
-            const SizedBox(height: 32),
-            Text('Größe: ${_heightCm.round()} cm'),
-            Slider(
-              value: _heightCm,
-              min: 140,
-              max: 220,
-              divisions: 80,
-              onChanged: (v) => setState(() => _heightCm = v),
-            ),
-            const SizedBox(height: 16),
-            Text('Gewicht: ${_weightKg.toStringAsFixed(1)} kg'),
-            Slider(
-              value: _weightKg,
-              min: 40,
-              max: 160,
-              divisions: 240,
-              onChanged: (v) => setState(() => _weightKg = v),
-            ),
-          ],
-        );
-      case 1:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Aktivität & Ziel 🎯', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<double>(
-              value: _activityLevel,
-              decoration: const InputDecoration(labelText: 'Aktivitätslevel'),
-              items: const [
-                DropdownMenuItem(value: 1.2, child: Text('Sitzend (Wenig Sport)')),
-                DropdownMenuItem(value: 1.375, child: Text('Leicht aktiv (1-3 Tage Sport)')),
-                DropdownMenuItem(value: 1.55, child: Text('Moderat aktiv (3-5 Tage Sport)')),
-                DropdownMenuItem(value: 1.725, child: Text('Sehr aktiv (6-7 Tage Sport)')),
-              ],
-              onChanged: (v) => setState(() => _activityLevel = v!),
-            ),
-            const SizedBox(height: 24),
-            DropdownButtonFormField<String>(
-              value: _pace,
-              decoration: const InputDecoration(labelText: 'Ernährungsziel'),
-              items: const [
-                DropdownMenuItem(value: 'lose_fast', child: Text('Aggressiv Abnehmen (-20%)')),
-                DropdownMenuItem(value: 'lose_slow', child: Text('Moderat Abnehmen (-15%)')),
-                DropdownMenuItem(value: 'maintain', child: Text('Gewicht Halten')),
-                DropdownMenuItem(value: 'gain_slow', child: Text('Moderat Zunehmen (+10%)')),
-              ],
-              onChanged: (v) => setState(() => _pace = v!),
-            ),
-          ],
-        );
-      case 2:
-      default:
-        final tempProfile = UserProfile(
-          id: 'u1',
-          heightCm: _heightCm,
-          weightKg: _weightKg,
-          birthYear: _birthYear,
-          sex: _sex,
-          activityLevel: _activityLevel,
-          pace: _pace,
-        );
+  void _completeOnboarding() {
+    final height = double.tryParse(_heightCtrl.text) ?? 178;
+    final weight = double.tryParse(_weightCtrl.text) ?? 75;
+    final year = int.tryParse(_yearCtrl.text) ?? 1995;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Deine berechneten Ziele 📊', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Täglicher Kalorienbedarf:'),
-                        Text('${tempProfile.targetKcal.round()} kcal', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.lightAccent)),
-                      ],
-                    ),
-                    const Divider(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Protein Target:'),
-                        Text('${tempProfile.targetProteinG.round()} g', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.protein)),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Kohlenhydrate Target:'),
-                        Text('${tempProfile.targetCarbG.round()} g', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.carbs)),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Fett Target:'),
-                        Text('${tempProfile.targetFatG.round()} g', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.fat)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        );
-    }
-  }
-
-  void _finishOnboarding() {
-    final repo = ref.read(localRepositoryProvider);
-    repo.saveUserProfile(UserProfile(
-      id: 'user_main',
-      heightCm: _heightCm,
-      weightKg: _weightKg,
-      birthYear: _birthYear,
+    final profile = UserProfile(
+      id: 'user_local',
+      heightCm: height,
+      weightKg: weight,
+      birthYear: year,
       sex: _sex,
       activityLevel: _activityLevel,
       pace: _pace,
-    ));
+    );
+
+    final repo = ref.read(localRepositoryProvider);
+    repo.saveUserProfile(profile);
     widget.onComplete();
   }
 }

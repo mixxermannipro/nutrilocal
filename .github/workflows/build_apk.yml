@@ -35,35 +35,39 @@ jobs:
       - name: Get Dependencies
         run: flutter pub get
 
+      - name: Run Unit Tests
+        run: flutter test
+
       - name: Build Android APK
         run: flutter build apk --release --no-tree-shake-icons
 
       - name: Rename APK
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk NutriLocal-v1.0.12.apk
+          cp build/app/outputs/flutter-apk/app-release.apk NutriLocal-v1.0.13.apk
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: NutriLocal-APK
-          path: NutriLocal-v1.0.12.apk
+          path: NutriLocal-v1.0.13.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
         with:
-          tag_name: v1.0.12
-          name: "NutriLocal v1.0.12 (Refactored Meal Logging, AI Model Cleaning & Coach Chat Fix)"
+          tag_name: v1.0.13
+          name: "NutriLocal v1.0.13 (Production Architecture & SQLite Persistence)"
           body: |
-            ## NutriLocal v1.0.12 Release 🎉
+            ## NutriLocal v1.0.13 Release 🎉
             
-            ### Fixes & End-to-End Improvements:
-            - **Mahlzeit-Erfassung Gefixt**: `Navigator.pushReplacement` im Logging-Sheet korrigiert. Mahlzeiten lassen sich nun per Foto, Text, Barcode oder Manuell nahtlos erfassen & speichern.
-            - **BYOK Modellerkennung Gefixt**: Gemini, OpenAI & Groq Model-IDs werden vor API-Aufrufen bereinigt (verhindert 404-Fehler).
-            - **AI Coach Chat Überarbeitet**: Echtes Auto-Scrolling zum Ende der Konversation, hübschere Sprechblasen im Apple-Design & verbesserte Prompt-Chips.
-            - **In-App Auto Updater**: Meldet Version v1.0.12 automatisch in der App.
+            ### Produktions- & Architektur-Upgrade:
+            - **Echte SQLite-Persistenz**: Alle Mahlzeiten, Workouts, Gewichtseinträge & Nutzerprofile werden dauerhaft in einer nativen SQLite-Datenbank auf dem Smartphone gespeichert.
+            - **Secure Storage für BYOK-Keys**: API-Keys werden ausschließlich im verschlüsselten Android Keystore / Secure Storage aufbewahrt (niemals in der Datenbank oder im JSON-Export).
+            - **Echtes Onboarding & Zielberechnung**: Onboarding-Flow beim Erststart mit Mifflin-St. Jeor Formeln.
+            - **Unit Tests im CI Pipeline**: Ausführung von Tests für Nährwertrechner, Thermodynamik & KI-Parser vor dem Release-Build.
+            - **Bereinigtes Repository & Lizenzen**: Fremd-Referenzcode nach `reference/` verschoben mit vollständigen Lizenzen & ATTRIBUTION.md.
             
             Download der `.apk` Datei unten! 👇
-          files: NutriLocal-v1.0.12.apk
+          files: NutriLocal-v1.0.13.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

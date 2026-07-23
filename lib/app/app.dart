@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/app_theme.dart';
+import '../data/repositories/local_repository.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/dashboard/dashboard_screen.dart';
 import '../features/diary/diary_screen.dart';
@@ -18,20 +19,32 @@ class NutriLocalApp extends ConsumerStatefulWidget {
 }
 
 class _NutriLocalAppState extends ConsumerState<NutriLocalApp> {
-  bool _isOnboardingComplete = true; // Default ready
   int _currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
+    final repo = ref.watch(localRepositoryProvider);
+
+    if (!repo.isInitialized) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        home: const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
     return MaterialApp(
       title: 'NutriLocal',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      home: !_isOnboardingComplete
+      home: !repo.hasProfile
           ? OnboardingScreen(
-              onComplete: () => setState(() => _isOnboardingComplete = true),
+              onComplete: () {},
             )
           : Scaffold(
               body: IndexedStack(
