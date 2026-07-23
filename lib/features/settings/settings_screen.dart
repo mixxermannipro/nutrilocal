@@ -17,7 +17,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late TextEditingController _fallbackKeyCtrl;
   late TextEditingController _customPromptCtrl;
   late String _primaryProvider;
+  late String _primaryModel;
   late String _fallbackProvider;
+  late String _fallbackModel;
 
   @override
   void initState() {
@@ -25,7 +27,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final repo = ref.read(localRepositoryProvider);
     final config = repo.aiConfig;
     _primaryProvider = config.primaryProvider;
+    _primaryModel = config.primaryModel;
     _fallbackProvider = config.fallbackProvider;
+    _fallbackModel = config.fallbackModel;
     _primaryKeyCtrl = TextEditingController(text: config.primaryApiKey);
     _fallbackKeyCtrl = TextEditingController(text: config.fallbackApiKey);
     _customPromptCtrl = TextEditingController(text: config.customInstructions);
@@ -34,6 +38,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final repo = ref.watch(localRepositoryProvider);
+    final primaryModelList = AvailableAIModels.providerModels[_primaryProvider] ?? ['gemini-2.0-flash'];
+    final fallbackModelList = AvailableAIModels.providerModels[_fallbackProvider] ?? ['google/gemini-2.0-flash-exp:free'];
+
+    if (!primaryModelList.contains(_primaryModel)) {
+      _primaryModel = primaryModelList.first;
+    }
+
+    if (!fallbackModelList.contains(_fallbackModel)) {
+      _fallbackModel = fallbackModelList.first;
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -62,9 +76,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 DropdownMenuItem(value: 'groq', child: Text('Groq (Fast)')),
                 DropdownMenuItem(value: 'ollama', child: Text('Ollama (Lokales Modell)')),
               ],
-              onChanged: (v) => setState(() => _primaryProvider = v!),
+              onChanged: (v) {
+                if (v != null) {
+                  setState(() {
+                    _primaryProvider = v;
+                    _primaryModel = AvailableAIModels.providerModels[v]?.first ?? 'gemini-2.0-flash';
+                  });
+                }
+              },
             ),
             const SizedBox(height: 12),
+
+            // Primary Model Selection Dropdown (Fud AI Feature)
+            DropdownButtonFormField<String>(
+              value: _primaryModel,
+              decoration: const InputDecoration(labelText: 'Primäres LLM Modell auswählen'),
+              items: primaryModelList.map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
+              onChanged: (v) {
+                if (v != null) setState(() => _primaryModel = v);
+              },
+            ),
+            const SizedBox(height: 12),
+
             TextField(
               controller: _primaryKeyCtrl,
               obscureText: true,
@@ -85,9 +118,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 DropdownMenuItem(value: 'openai', child: Text('OpenAI (Fallback)')),
                 DropdownMenuItem(value: 'gemini', child: Text('Gemini (Fallback)')),
               ],
-              onChanged: (v) => setState(() => _fallbackProvider = v!),
+              onChanged: (v) {
+                if (v != null) {
+                  setState(() {
+                    _fallbackProvider = v;
+                    _fallbackModel = AvailableAIModels.providerModels[v]?.first ?? 'google/gemini-2.0-flash-exp:free';
+                  });
+                }
+              },
             ),
             const SizedBox(height: 12),
+
+            // Fallback Model Selection Dropdown
+            DropdownButtonFormField<String>(
+              value: _fallbackModel,
+              decoration: const InputDecoration(labelText: 'Fallback LLM Modell auswählen'),
+              items: fallbackModelList.map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
+              onChanged: (v) {
+                if (v != null) setState(() => _fallbackModel = v);
+              },
+            ),
+            const SizedBox(height: 12),
+
             TextField(
               controller: _fallbackKeyCtrl,
               obscureText: true,
@@ -206,14 +258,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     repo.saveAIConfig(AIProviderConfig(
       primaryProvider: _primaryProvider,
       primaryApiKey: _primaryKeyCtrl.text.trim(),
-      primaryModel: _primaryProvider == 'gemini' ? 'gemini-1.5-flash' : 'gpt-4o-mini',
+      primaryModel: _primaryModel,
       fallbackProvider: _fallbackProvider,
       fallbackApiKey: _fallbackKeyCtrl.text.trim(),
+      fallbackModel: _fallbackModel,
       customInstructions: _customPromptCtrl.text.trim(),
     ));
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Einstellungen wurden sicher gespeichert! 🔒')),
+      const SnackBar(content: Text('Einstellungen & KI-Modelle gespeichert! 🔒')),
     );
   }
 }

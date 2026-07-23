@@ -165,7 +165,7 @@ class WorkoutSet {
   final String exerciseName;
   final double weightKg;
   final int reps;
-  final String? note; // e.g. "+10kg Zusatzgewicht"
+  final String? note;
   final double? previousWeightKg;
   final int? previousReps;
 
@@ -203,14 +203,49 @@ class AIProviderConfig {
   final String primaryModel;
   final String fallbackProvider;
   final String fallbackApiKey;
+  final String fallbackModel;
   final String customInstructions;
 
   AIProviderConfig({
     this.primaryProvider = 'gemini',
     this.primaryApiKey = '',
-    this.primaryModel = 'gemini-1.5-flash',
+    this.primaryModel = 'gemini-2.0-flash',
     this.fallbackProvider = 'openrouter',
     this.fallbackApiKey = '',
+    this.fallbackModel = 'google/gemini-2.0-flash-exp:free',
     this.customInstructions = 'Ich lebe in Deutschland. Bevorzuge deutsche Produktnamen und metrische Einheiten.',
   });
+}
+
+class AvailableAIModels {
+  static const Map<String, List<String>> providerModels = {
+    'gemini': [
+      'gemini-2.0-flash',
+      'gemini-1.5-flash',
+      'gemini-1.5-pro',
+      'gemini-1.0-pro',
+    ],
+    'openai': [
+      'gpt-4o',
+      'gpt-4o-mini',
+      'o3-mini',
+      'o1',
+    ],
+    'openrouter': [
+      'google/gemini-2.0-flash-exp:free',
+      'meta-llama/llama-3.3-70b-instruct:free',
+      'anthropic/claude-3.5-sonnet',
+      'deepseek/deepseek-r1:free',
+    ],
+    'groq': [
+      'llama-3.3-70b-versatile',
+      'mixtral-8x7b-32768',
+      'gemma2-9b-it',
+    ],
+    'ollama': [
+      'llama3.2',
+      'mistral',
+      'qwen2.5',
+    ],
+  };
 }

@@ -40,32 +40,31 @@ jobs:
 
       - name: Rename APK
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk NutriLocal-v1.0.8.apk
+          cp build/app/outputs/flutter-apk/app-release.apk NutriLocal-v1.0.9.apk
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: NutriLocal-APK
-          path: NutriLocal-v1.0.8.apk
+          path: NutriLocal-v1.0.9.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
         with:
-          tag_name: v1.0.8
-          name: "NutriLocal v1.0.8 Release (Full Fud AI German Architecture & Progressive Overload)"
+          tag_name: v1.0.9
+          name: "NutriLocal v1.0.9 Final Release (Latest LLM Models, Clean Architecture & Documentation)"
           body: |
-            ## NutriLocal v1.0.8 Release 🎉
+            ## NutriLocal v1.0.9 Final Release 🎉
             
-            ### Vollständige Fud AI Architektur & Deutsche Optimierungen:
-            - **100% Deutsche Sprachführung**: Alle UIs, Prompt-Ketten und Dialoge vollständig auf Deutsch (DACH).
-            - **Intelligente Eingabemethoden**: Kamera-Scan (1-10 Fotos), Galerie-Import, Barcode-Scan mit Open Food Facts DACH, Texteingabe, Stimmeingabe & Manuell.
-            - **Favoriten, Zuletzt verwendet & Gestern kopieren**: Schnell-Logg-Leiste und 1-Klick Kopie vergangener Tage.
-            - **Fud AI Fortschritts-Tracker**: Gewicht & Körperfett % mit 7d EMA Glättung & Android Health Connect Integration.
-            - **Minimalistisches Progressive Overload Workout Tagebuch**: Zeigt bei der Übungsauswahl automatisch das letzte Ergebnis (*z.B. "Letztes Mal: 6 WDH @ +10kg Zusatzgewicht"*)!
-            - **Thermodynamischer AI Coach Chat**: 30/60/90 Tage Gewichtsprognose mit Under-Logging Erkennung.
+            ### Highlights dieser Version:
+            - **Dynamische KI-Modellauswahl (Gemini 2.0 Flash, GPT-4o, etc.)**: In den Einstellungen wählbar für primären & Fallback-Provider.
+            - **Sauberes Repository**: Temporäre Dateien bereinigt, professionelles `README.md` hinzugefügt.
+            - **Vollständige Fud AI Integration & Lokalisierung**: 100% Deutsch, Multi-Foto, Barcode, Voice, Copy-from-Yesterday.
+            - **Progressive Overload Workout Tagebuch**: Automatische Anzeige des letzten Ergebnisses beim Übungseintrag.
+            - **Thermodynamischer AI Coach & Health Connect Sync**.
             
             Download der `.apk` Datei unten! 👇
-          files: NutriLocal-v1.0.8.apk
+          files: NutriLocal-v1.0.9.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
